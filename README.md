@@ -32,29 +32,22 @@
 
 ## 项目包含的 Skills
 
-- 🚀 [**edgeone-pages-best-practice**](Skills/edgeone-pages/SKILL.md)：指导 AI 生成符合 [EdgeOne Pages](https://edgeone.ai/zh) 平台规范的代码，避免部署报错。
-- 📝 [**mkdocs-shadcn**](Skills/mkdocs-shadcn/SKILL.md)：mkdocs-shadcn 主题 Markdown 排版与项目编排，包括 YAML 配置、扩展语法（admonition、details、tab、数学公式等）、文本对齐规范等。
-- 📄 [**ideological-self-report**](Skills/ideological-self-report/SKILL.md)：帮助用户撰写符合规范的思想汇报文档，适用于大学生、入党积极分子等需要定期提交思想汇报的场景。
+| Skill | 说明 |
+|-------|------|
+| [**stop-chinese-slop**](Skills/stop-chinese-slop/SKILL.md) | 去除中文文本中的 AI 腔、翻译腔、套话、黑话和公式化表达，让表达更自然、直接、精炼、具体 |
+| [**dify-deploy**](Skills/dify-deploy/SKILL.md) | 通过 ADMIN_API_KEY 自动化调用 Dify Console API，创建工作流应用、导出/导入 DSL |
+| [**dify-workflow**](Skills/dify-workflow/SKILL.md) | 根据需求设计并生成 Dify 工作流 DSL，支持创建或更新 workflow/advanced-chat 应用并部署到 Dify 平台，与 dify-deploy skill 搭配使用 |
+| [**ideological-self-report**](Skills/ideological-self-report/SKILL.md) | 帮助用户撰写符合规范的思想汇报文档，尤其适用于引导大学生定制思想汇报，提供预置模板并支持沉淀个人文档库 |
+| [**mkdocs-shadcn**](Skills/mkdocs-shadcn/SKILL.md) | mkdocs-shadcn 主题 Markdown 排版与项目编排，包括 YAML 配置、扩展语法（admonition、details、tab、数学公式等）、文本对齐规范等 |
 
 
 ---
 
-## 如何使用
+## 如何安装
 
-1. **浏览 Skills**：查看 `Skills/` 目录下的技能定义
-2. **阅读 SKILL.md**：每个 Skill 都有详细的触发条件和能力说明
-3. **下载 Skills**：将需要的 Skill 完整技能包复制到你的项目中
-4. **按需触发**：根据 Skill 描述中的触发场景，在对话中激活相应技能
-
----
-
-## 贡献指南
-
-欢迎贡献新的 Skills！请确保：
-
-1. **经过充分调研**：本项目内的 Skills 应具有不可替代性和实用性，请先在 [skills.sh](https://skills.sh/) 平台或使用`find-skills`搜索是否已存在相似 Skill。
-2. **包含完整文档**：提供清晰的触发条件和能力说明。
-3. **附带参考资源**：如有需要，提供相关的参考文档。
+```bash
+npx skills add https://github.com/jspi-fu/customized-skills
+```
 
 ---
 

@@ -160,14 +160,9 @@ python <skill-path>/scripts/config_manager.py check
 3. **各方面的字数**：严格遵循 `word_count` 配置
 4. **缺点部分**：从 `historical_weaknesses` 中排除已使用过的，选择新的缺点主题；**必须避免与历史缺点重复**
 
-### 步骤4：输出格式
+### 步骤4：质量检查
 
-严格遵循 `references/requirements.md` 中的格式要求：
-- 标题居中
-- 称谓顶格
-- 正文分段
-- 此致敬礼格式
-- 落款居右
+严格遵循 `references/requirements.md` 中的各项要求，逐条审查生成的思想汇报是否符合要求。
 
 ### 步骤5：保存文件
 

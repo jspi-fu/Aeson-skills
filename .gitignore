@@ -9,6 +9,7 @@ desktop.ini
 .agents/
 .trae/
 .idea/
+.claude/
 *.swp
 *.swo
 *~
@@ -47,3 +48,5 @@ yarn.lock
 .env.local
 .env.*.local
 skills-lock.json
+test/
+linshi/

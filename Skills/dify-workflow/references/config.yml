@@ -1,0 +1,19 @@
+# Dify Workflow Skill 配置
+# ================================================
+# 请根据你的 Dify 实例修改以下设置
+
+# DSL 版本
+# 在你的 Dify 实例中导出任意工作流，查看 YAML 顶部的 version 字段
+# 常见版本对照：
+#   0.1.0       — Dify v0.6.x ~ v0.12.x（初始版本，无 dependencies 字段）
+#   0.1.1~0.1.5 — Dify v0.13.x ~ v0.14.x
+#   0.2.0~0.3.x — Dify v1.0.0 ~ v1.2.x（新增 iteration、agent 节点）
+#   0.4.0~0.5.x — Dify v1.3.0 ~ v1.9.x（新增 loop 节点）
+#   0.6.0       — Dify v1.10.0+（当前最新，新增 human-input、trigger 节点）
+dsl_version: "0.6.0"
+
+# 可选：参考 DSL 文件名
+# 从你的 Dify 实例导出一个工作流文件，放到 references/user-reference/ 目录下
+# 填写文件名（如 "my-workflow.yml"），skill 会读取它作为 schema 参考
+# 留空则不使用参考文件，仅依赖版本差异文档
+reference_dsl: ""

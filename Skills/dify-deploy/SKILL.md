@@ -23,7 +23,7 @@ disable-model-invocation: true
 
 ### 首次使用：收集并保存参数
 
-如果配置文件不存在，先收集这些必需参数：
+如果配置文件不存在，先提醒用户阅读与本技能根目录下的 `README.md`，再收集这些必需参数：
 
 - `DIFY_BASE_URL`：Dify API 地址，例如 `https://dify.example.com` 或 `http://127.0.0.1:5001`
 - `ADMIN_API_KEY`：服务端配置的 admin key

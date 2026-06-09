@@ -1,94 +1,94 @@
-# DSL 版本差异记录
+# DSL Version Delta Log
 
-本文档记录 Dify Workflow DSL 各版本相对于前一版本的变更。生成 DSL 时参照此文档决定可用的节点和字段。
+This document records the changes in each version of Dify Workflow DSL relative to the previous version. Refer to this document when generating DSL to determine the available nodes and fields.
 
-## 使用方法
+## Usage
 
-1. 读取 `config.yml` 中的 `dsl_version`
-2. 生成时仅使用该版本及之前版本支持的节点和字段
-3. 若有 `reference_dsl`，优先以其结构为准（版本差异文档仅作补充）
-
----
-
-## 版本 0.6.0（Dify v1.10.0+）
-
-**新增节点：**
-- `human-input` — 暂停工作流等待人工输入
-- `trigger-schedule` — 定时触发器
-- `trigger-webhook` — Webhook 触发器
-- `trigger-plugin` — 插件触发器
-
-**新增字段：**
-- `iteration` 节点：`is_parallel`（是否并行执行）、`parallel_nums`（并行数量）
-- `LLM` 节点：`reasoning_format`（推理格式）、`structured_output`（结构化输出配置）
-- `features.file_upload` 扩展子字段：`allowed_file_types`、`allowed_file_extensions`、`allowed_file_upload_methods`、`number_limits`、`fileUploadConfig`
+1. Read `dsl_version` from `config.yml`
+2. During generation, only use nodes and fields supported by that version and earlier
+3. If `reference_dsl` exists, prioritize its structure (this version delta document serves as a supplement only)
 
 ---
 
-## 版本 0.5.0（Dify v1.6.0~v1.9.x）
+## Version 0.6.0 (Dify v1.10.0+)
 
-**新增节点：**
-- `knowledge-index` — 知识库索引节点
-- `datasource` — 数据源节点
-- `datasource-empty` — 空数据源节点
+**New Nodes:**
+- `human-input` — Pauses the workflow to wait for human input
+- `trigger-schedule` — Scheduled trigger
+- `trigger-webhook` — Webhook trigger
+- `trigger-plugin` — Plugin trigger
 
----
-
-## 版本 0.4.0（Dify v1.3.0~v1.5.x）
-
-**新增节点：**
-- `loop` — 循环节点（带退出条件）
-- `loop-start` — 循环起始节点（自动生成）
-- `loop-end` — 循环结束节点（自动生成）
-
-**新增字段：**
-- 多节点通用：`error_strategy`（错误处理策略）、`default_value`（默认值）
+**New Fields:**
+- `iteration` node: `is_parallel` (whether to execute in parallel), `parallel_nums` (parallel count)
+- `LLM` node: `reasoning_format` (reasoning format), `structured_output` (structured output configuration)
+- `features.file_upload` extended sub-fields: `allowed_file_types`, `allowed_file_extensions`, `allowed_file_upload_methods`, `number_limits`, `fileUploadConfig`
 
 ---
 
-## 版本 0.3.0（Dify v1.1.0~v1.2.x）
+## Version 0.5.0 (Dify v1.6.0~v1.9.x)
 
-**新增节点：**
-- `agent` — Agent 节点（带工具调用能力）
-
-**格式变更：**
-- `provider` 格式变更为三段式：`langgenius/<provider>/<provider>`（如 `langgenius/openai/openai`）
-
----
-
-## 版本 0.2.0（Dify v1.0.0）
-
-**新增节点：**
-- `iteration` — 迭代节点
-- `iteration-start` — 迭代起始节点（自动生成）
-
-**新增顶层字段：**
-- `dependencies` — 插件依赖列表
-
-**新增节点字段：**
-- LLM、HTTP、Code、Tool 节点：`retry_config`（重试配置）
+**New Nodes:**
+- `knowledge-index` — Knowledge base index node
+- `datasource` — Data source node
+- `datasource-empty` — Empty data source node
 
 ---
 
-## 版本 0.1.1~0.1.5（Dify v0.13.x~v0.14.x）
+## Version 0.4.0 (Dify v1.3.0~v1.5.x)
 
-**结构变更：**
-- `dependencies` 从 `graph` 中提取（非顶层字段）
+**New Nodes:**
+- `loop` — Loop node (with exit condition)
+- `loop-start` — Loop start node (auto-generated)
+- `loop-end` — Loop end node (auto-generated)
 
-**新增字段：**
-- `conversation_variables` — 会话变量
-- `environment_variables` — 环境变量
+**New Fields:**
+- Multiple nodes (common): `error_strategy` (error handling strategy), `default_value` (default value)
 
 ---
 
-## 版本 0.1.0（初始版本）
+## Version 0.3.0 (Dify v1.1.0~v1.2.x)
 
-**基础节点：**
-- `start`、`end`、`answer`、`llm`、`code`、`if-else`、`http-request`
-- `template-transform`、`knowledge-retrieval`、`tool`
-- `parameter-extractor`、`question-classifier`
-- `variable-aggregator`、`document-extractor`
+**New Nodes:**
+- `agent` — Agent node (with tool calling capability)
 
-**格式特征：**
-- 无 `dependencies` 字段
-- `provider` 格式：`<provider>`（非三段式）
+**Format Change:**
+- `provider` format changed to three-segment: `langgenius/<provider>/<provider>` (e.g., `langgenius/openai/openai`)
+
+---
+
+## Version 0.2.0 (Dify v1.0.0)
+
+**New Nodes:**
+- `iteration` — Iteration node
+- `iteration-start` — Iteration start node (auto-generated)
+
+**New Top-Level Fields:**
+- `dependencies` — Plugin dependency list
+
+**New Node Fields:**
+- LLM, HTTP, Code, Tool nodes: `retry_config` (retry configuration)
+
+---
+
+## Version 0.1.1~0.1.5 (Dify v0.13.x~v0.14.x)
+
+**Structural Change:**
+- `dependencies` extracted from `graph` (not a top-level field)
+
+**New Fields:**
+- `conversation_variables` — Conversation variables
+- `environment_variables` — Environment variables
+
+---
+
+## Version 0.1.0 (Initial Version)
+
+**Base Nodes:**
+- `start`, `end`, `answer`, `llm`, `code`, `if-else`, `http-request`
+- `template-transform`, `knowledge-retrieval`, `tool`
+- `parameter-extractor`, `question-classifier`
+- `variable-aggregator`, `document-extractor`
+
+**Format Characteristics:**
+- No `dependencies` field
+- `provider` format: `<provider>` (not three-segment)

@@ -24,7 +24,7 @@
 | 🚀 [**dify-deploy（Dify 部署）**](#-dify-deploydify-部署) | 通过 ADMIN_API_KEY 自动化调用 Dify Console API，创建工作流应用、导入导出 DSL | [公众号文章](https://mp.weixin.qq.com/s/Fm1vmyrbKOjeCNQBDD24Bw) |
 | 🔧 [**dify-workflow（Dify 工作流）**](#-dify-workflowdify-工作流) | 根据需求设计并生成 Dify 工作流 DSL，与 dify-deploy 搭配使用 | [公众号文章](https://mp.weixin.qq.com/s/Fm1vmyrbKOjeCNQBDD24Bw) |
 | 📝 [**ideological-self-report（思想汇报）**](#-ideological-self-report思想汇报) | 帮助撰写符合规范的思想汇报文档，提供预置模板并支持沉淀个人文档库 | [SKILL.md](./Skills/ideological-self-report/SKILL.md) |
-| 📖 [**mkdocs-shadcn（文档排版）**](#-mkdocs-shadcn文档排版) | MkDocs Shadcn 主题 Markdown 排版与项目编排，含 YAML 配置、扩展语法等 | [SKILL.md](./Skills/mkdocs-shadcn/SKILL.md) |
+| 📖 [**mkdocs-shadcn（文档排版）**](#-mkdocs-shadcn文档排版) | MkDocs Shadcn 主题 Markdown 排版与项目编排，含 YAML 配置、扩展语法等 | [排版示例](https://hello-vibe.netlify.app/) |
 | 🐝 [**beeimg-uploader（蜜蜂图床上传）**](#-beeimg-uploader蜜蜂图床上传) | 批量扫描本地目录图片并上传至蜜蜂图床，返回公开外链，支持并发、速率控制、递归扫描 | [SKILL.md](./Skills/beeimg-uploader/SKILL.md) |
 
 ---
@@ -141,7 +141,7 @@ Agent 会自己 clone 到对应目录，不用你操心路径。
 
 > *"Markdown 写文档，也能好看。"*
 
-MkDocs Shadcn 主题的完整排版指南。从 YAML 配置到扩展语法（admonition、details、tab、数学公式），从文本对齐到项目编排，一个 Skill 搞定所有文档排版需求。
+[MkDocs Shadcn 主题](https://asiffer.github.io/mkdocs-shadcn/)的完整排版指南。从 YAML 配置到扩展语法（admonition、details、tab、数学公式），从文本对齐到项目编排，一个 Skill 搞定所有文档排版需求。
 
 **涵盖**
 

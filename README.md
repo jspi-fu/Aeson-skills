@@ -7,7 +7,7 @@
 #### 烨笙开发的 Agent Skills 集合，解决定制化需求
 
 [![License](https://img.shields.io/badge/License-MIT-3B82F6?style=for-the-badge)](./LICENSE)
-[![Skills](https://img.shields.io/badge/Skills-5-10B981?style=for-the-badge)](#-skills)
+[![Skills](https://img.shields.io/badge/Skills-6-10B981?style=for-the-badge)](#-skills)
 [![AgentSkills](https://img.shields.io/badge/AgentSkills-Standard-8B5CF6?style=for-the-badge)](https://agentskills.io)
 
 </div>
@@ -25,6 +25,7 @@
 | 🔧 [**dify-workflow（Dify 工作流）**](#-dify-workflowdify-工作流) | 根据需求设计并生成 Dify 工作流 DSL，与 dify-deploy 搭配使用 | [公众号文章](https://mp.weixin.qq.com/s/Fm1vmyrbKOjeCNQBDD24Bw) |
 | 📝 [**ideological-self-report（思想汇报）**](#-ideological-self-report思想汇报) | 帮助撰写符合规范的思想汇报文档，提供预置模板并支持沉淀个人文档库 | [SKILL.md](./Skills/ideological-self-report/SKILL.md) |
 | 📖 [**mkdocs-shadcn（文档排版）**](#-mkdocs-shadcn文档排版) | MkDocs Shadcn 主题 Markdown 排版与项目编排，含 YAML 配置、扩展语法等 | [SKILL.md](./Skills/mkdocs-shadcn/SKILL.md) |
+| 🐝 [**beeimg-uploader（蜜蜂图床上传）**](#-beeimg-uploader蜜蜂图床上传) | 批量扫描本地目录图片并上传至蜜蜂图床，返回公开外链，支持并发、速率控制、递归扫描 | [SKILL.md](./Skills/beeimg-uploader/SKILL.md) |
 
 ---
 
@@ -150,6 +151,27 @@ MkDocs Shadcn 主题的完整排版指南。从 YAML 配置到扩展语法（adm
 - 项目目录编排建议
 
 → [SKILL.md](./Skills/mkdocs-shadcn/SKILL.md)
+
+</td></tr>
+</table>
+
+<table>
+<tr><td>
+
+### 🐝 beeimg-uploader（蜜蜂图床上传）
+
+> *"一行命令，把整个目录的图片变成外链。"*
+
+把本地目录里的图片批量上传到[蜜蜂图床](https://www.beeimg.cn/)，返回每张图片的公开访问地址。内建速率控制，自动遵守平台限制（每分钟 20 张 / 每小时 100 张 / 单文件 10MB），并发上传、失败隔离，一张出错不影响其余。
+
+**它能做什么**
+
+- 扫描目录（可递归子目录）批量上传图片，返回公开外链
+- 内建速率控制与文件大小校验，自动跳过超限文件
+- 并发上传（默认 5，上限 10），单张失败自动隔离
+- 附带通用 API 请求与配置模板管理脚本，可复用调用
+
+→ [SKILL.md](./Skills/beeimg-uploader/SKILL.md)
 
 </td></tr>
 </table>

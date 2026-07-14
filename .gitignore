@@ -49,4 +49,4 @@ yarn.lock
 .env.*.local
 skills-lock.json
 test/
-linshi/
+temp/

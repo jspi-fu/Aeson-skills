@@ -25,7 +25,7 @@
 | 🔧 [**dify-workflow（Dify 工作流）**](#-dify-workflowdify-工作流) | 根据需求设计并生成 Dify 工作流 DSL，与 dify-deploy 搭配使用 | [公众号文章](https://mp.weixin.qq.com/s/Fm1vmyrbKOjeCNQBDD24Bw) |
 | 📝 [**ideological-self-report（思想汇报）**](#-ideological-self-report思想汇报) | 帮助撰写符合规范的思想汇报文档，提供预置模板并支持沉淀个人文档库 | [SKILL.md](./Skills/ideological-self-report/SKILL.md) |
 | 📖 [**mkdocs-shadcn（文档排版）**](#-mkdocs-shadcn文档排版) | MkDocs Shadcn 主题 Markdown 排版与项目编排，含 YAML 配置、扩展语法等 | [排版示例](https://hello-vibe.netlify.app/) |
-| 🐝 [**beeimg-uploader（蜜蜂图床上传）**](#-beeimg-uploader蜜蜂图床上传) | 批量扫描本地目录图片并上传至蜜蜂图床，返回公开外链，支持并发、速率控制、递归扫描 | [SKILL.md](./Skills/beeimg-uploader/SKILL.md) |
+| � [**image-upload（文档图床化）**](#-image-upload文档图床化) | 扫描文档中的本地/网络图片并批量上传至图床（ImgBB / Freeimage / UploadMe / ImgLink），自动替换为直链，支持全量转存与内容指纹去重 | [SKILL.md](./Skills/image-upload-skill/SKILL.md) |
 
 ---
 
@@ -158,20 +158,20 @@ Agent 会自己 clone 到对应目录，不用你操心路径。
 <table>
 <tr><td>
 
-### 🐝 beeimg-uploader（蜜蜂图床上传）
+### � image-upload（文档图床化）
 
-> *"一行命令，把整个目录的图片变成外链。"*
+> *"说一句话，文档里的图片全部上云。"*
 
-把本地目录里的图片批量上传到[蜜蜂图床](https://www.beeimg.cn/)，返回每张图片的公开访问地址。内建速率控制，自动遵守平台限制（每分钟 20 张 / 每小时 100 张 / 单文件 10MB），并发上传、失败隔离，一张出错不影响其余。
+扫描 Markdown / HTML 文档里的本地图片，一键上传到 [ImgBB](https://imgbb.com/)、[Freeimage](https://freeimage.host/)、[UploadMe](https://uploadme.me/) 或 [ImgLink](https://imglink.cc/)，自动把本地路径替换成可访问的直链——不用打开 PicGo，不用一张张手动上传。零外部依赖，Node.js 18+ 开箱即用。
 
 **它能做什么**
 
-- 扫描目录（可递归子目录）批量上传图片，返回公开外链
-- 内建速率控制与文件大小校验，自动跳过超限文件
-- 并发上传（默认 5，上限 10），单张失败自动隔离
-- 附带通用 API 请求与配置模板管理脚本，可复用调用
+- 扫描文档提取本地图片并批量上传，`--replace` 原地替换为图床直链
+- 全量转存（`--mirror`）：本地图片 + 文档内已有的网络图片一并搬到目标图床
+- 内容指纹去重：SHA-256 缓存 + HEAD 存活校验，相同图片跨次运行不重复上传
+- 四家图床任选，仅 ImgLink 支持 SVG；缺 API Key 时引导填写 `.env` 并自动重试
 
-→ [SKILL.md](./Skills/beeimg-uploader/SKILL.md)
+→ [SKILL.md](./Skills/image-upload-skill/SKILL.md)
 
 </td></tr>
 </table>

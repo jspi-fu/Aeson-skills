@@ -25,7 +25,7 @@
 | 🔧 [**dify-workflow（Dify 工作流）**](#-dify-workflowdify-工作流) | 根据需求设计并生成 Dify 工作流 DSL，与 dify-deploy 搭配使用 | [公众号文章](https://mp.weixin.qq.com/s/Fm1vmyrbKOjeCNQBDD24Bw) |
 | 📝 [**ideological-self-report（思想汇报）**](#-ideological-self-report思想汇报) | 帮助撰写符合规范的思想汇报文档，提供预置模板并支持沉淀个人文档库 | [SKILL.md](./Skills/ideological-self-report/SKILL.md) |
 | 📖 [**mkdocs-shadcn（文档排版）**](#-mkdocs-shadcn文档排版) | MkDocs Shadcn 主题 Markdown 排版与项目编排，含 YAML 配置、扩展语法等 | [排版示例](https://hello-vibe.netlify.app/) |
-| � [**image-upload（文档图床化）**](#-image-upload文档图床化) | 扫描文档中的本地/网络图片并批量上传至图床（ImgBB / Freeimage / UploadMe / ImgLink），自动替换为直链，支持全量转存与内容指纹去重 | [SKILL.md](./Skills/image-upload-skill/SKILL.md) |
+| � [**image-upload（文档图床化）**](#-image-upload文档图床化) | 扫描文档中的本地/网络图片并批量上传至图床（ImgBB / Freeimage / UploadMe / ImgLink），自动替换为直链，支持全量转存与内容指纹去重 | [公众号文章](https://mp.weixin.qq.com/s/bWuH9pXnH3L2ablM_2GbuA) |
 
 ---
 

@@ -1,6 +1,6 @@
 ## 整理模式与配置策略 (`STARS_ORGANIZE_MODE`)
 
-环境配置文件 `.env` 中通过 `STARS_ORGANIZE_MODE` 设定整理模式，默认为 `moderate`。可选的精细参数（如 `STARS_LOW_STARS_THRESHOLD`、`STARS_STALE_YEARS` 等）在 `.env` 中**默认注释**，以便系统按当前模式的预设策略自动运行；用户仅在需要覆盖默认模式逻辑时方可手动取消注释。
+整理模式与各精细参数通过环境变量/`.env` 级联解析（优先级：真实环境变量 > `GH_STAR_MANAGER_ENV` 指向文件 > `~/.gh-star-manager/.env` > Skill 根目录 `.env`）设定。其中 `STARS_ORGANIZE_MODE` 默认为 `moderate`。可选的精细参数（如 `STARS_LOW_STARS_THRESHOLD`、`STARS_STALE_YEARS` 等）在各 `.env` 中**默认注释**，以便系统按当前模式的预设策略自动运行；用户仅在需要覆盖默认模式逻辑时方可手动取消注释。
 
 ### 三种整理模式对照表
 

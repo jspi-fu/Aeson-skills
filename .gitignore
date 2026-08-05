@@ -22,6 +22,7 @@ desktop.ini
 *.tmp
 *.temp
 .cache/
+temp/
 
 # Python
 __pycache__/
@@ -50,4 +51,4 @@ yarn.lock
 .env.*.local
 skills-lock.json
 test/
-temp/
+*.zip

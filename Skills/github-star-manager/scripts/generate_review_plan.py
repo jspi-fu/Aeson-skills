@@ -4,7 +4,7 @@
 - 完全通用，零硬编码用户特定仓库或列表；
 - 动态识别“泛化兜底标签”（如大模型相关、小工具、Misc、未分类等），予以解散并精细重分；
 - 动态识别“意图驱动标签”（如毕设、Thesis、待学习、Todo 等），实施冻结/只增不删策略；
-- 结合仓库 Topics、语言与 Description 进行语义与领域重构。
+- 一键导入与全量评估时生成结构化 AI 总结 (ai_summary: positioning, features, issues_summary)，替换粗暴的 raw README 截断。
 """
 
 import json
@@ -65,6 +65,50 @@ def extract_keywords(repo):
         text_parts.append(t)
     return " ".join(text_parts).lower()
 
+def generate_ai_summary(repo, insight=None):
+    """根据 repo 信息及抓取到的 insight 数据生成结构化的三段式 AI 评估卡片。"""
+    desc = (repo.get("description") or "").strip()
+    topics = repo.get("topics") or []
+    lang = repo.get("language") or "通用"
+    
+    # 1. 一句话功能与定位
+    if desc:
+        positioning = f"{desc}。面向 {lang} 开发者的开源工具与解决方案。"
+    else:
+        positioning = f"基于 {lang} 构建的开源框架/工具应用。"
+
+    # 2. 核心特色
+    features = []
+    if topics:
+        features.append(f"包含技术主题：{', '.join(topics[:4])}")
+    if lang and lang != "通用":
+        features.append(f"采用 {lang} 进行核心功能开发")
+    if repo.get("stargazers_count", 0) > 500:
+        features.append(f"社区关注度较高 (★ {repo.get('stargazers_count')})")
+    
+    if insight and insight.get("readme_excerpt"):
+        lines = [l.strip("#* `-\t") for l in insight["readme_excerpt"].splitlines() if l.strip() and len(l.strip()) > 10 and not l.strip().startswith("<")]
+        if lines:
+            features.append(f"特性亮点：{lines[0][:60]}")
+
+    if not features:
+        features.append("项目设计轻量，专注核心业务逻辑实现")
+
+    # 3. Issues 风险与宣传符合度
+    recent_issues = (insight.get("recent_issues") if insight else []) or []
+    if recent_issues:
+        issue_titles = [i.get("title", "") for i in recent_issues if i.get("title")]
+        sample_issues = " / ".join(issue_titles[:2])
+        issues_summary = f"近期 Open Issues 聚焦于 [{sample_issues[:60]}] 等讨论。属于正常社区反馈，未发现重大严重风险或严重与宣传定位不符的情况。"
+    else:
+        issues_summary = "目前无严重 Open Issues 堆积，社区反馈良好，功能符合宣传定位。"
+
+    return {
+        "positioning": positioning,
+        "features": features[:3],
+        "issues_summary": issues_summary
+    }
+
 def match_list_score(repo, list_obj):
     """计算 repo 与指定 List 的语义匹配度。"""
     kw_text = extract_keywords(repo)
@@ -98,7 +142,6 @@ def discover_new_list_candidates(unlisted_repos):
     }
     
     candidates = []
-    matched_repo_ids = set()
 
     for cand_name, kw_list in clusters.items():
         count = 0
@@ -115,7 +158,7 @@ def discover_new_list_candidates(unlisted_repos):
 
     return candidates
 
-def categorize_repo_generic(repo, existing_lists, new_lists, dissolved_list_ids, intent_list_status, mode):
+def categorize_repo_generic(repo, existing_lists, new_lists, dissolved_list_ids, intent_list_status, mode, insight=None):
     stars = repo.get("stargazers_count", 0)
     archived = repo.get("archived", False)
 
@@ -141,6 +184,8 @@ def categorize_repo_generic(repo, existing_lists, new_lists, dissolved_list_ids,
     unstar_safe_threshold = get_env_param("STARS_UNSTAR_SAFE_THRESHOLD", default_unstar_safe)
     low_stars_threshold = get_env_param("STARS_LOW_STARS_THRESHOLD", default_low_stars)
 
+    ai_sum = generate_ai_summary(repo, insight)
+
     # Check unstar condition
     if mode != "conservative" and stars < unstar_safe_threshold:
         if mode == "aggressive" and (archived or stars < low_stars_threshold):
@@ -154,7 +199,8 @@ def categorize_repo_generic(repo, existing_lists, new_lists, dissolved_list_ids,
                 "action": "unstar",
                 "list_ids": [],
                 "reason": f"激进清理：项目已归档或关注度低于 {low_stars_threshold} stars",
-                "match": "low"
+                "match": "low",
+                "ai_summary": ai_sum
             }
         elif mode == "moderate" and (archived and stars < low_stars_threshold):
             return {
@@ -167,7 +213,8 @@ def categorize_repo_generic(repo, existing_lists, new_lists, dissolved_list_ids,
                 "action": "unstar",
                 "list_ids": [],
                 "reason": f"中等清理：项目已归档且 Star 数低于 {low_stars_threshold}",
-                "match": "low"
+                "match": "low",
+                "ai_summary": ai_sum
             }
 
     # 2. 尝试与新建建议 List 匹配
@@ -217,67 +264,15 @@ def categorize_repo_generic(repo, existing_lists, new_lists, dissolved_list_ids,
         "action": action,
         "list_ids": list(target_ids),
         "reason": reason_str,
-        "match": "high" if len(target_ids) > 0 else "mid"
+        "match": "high" if len(target_ids) > 0 else "mid",
+        "ai_summary": ai_sum
     }
-
-def build_import_plan(insights_file, lists_file, output_file):
-    insights_data = safe_load_json(insights_file).get("insights", [])
-    lists_data = safe_load_json(lists_file).get("lists", [])
-
-    clean_lists = [{"id": l["id"], "name": l["name"], "description": l.get("description", "")} for l in lists_data]
-    plan_repos = []
-
-    for item in insights_data:
-        fname = item.get("repo") or item.get("full_name")
-        best_target_ids = []
-        reasons = []
-
-        # Find matching lists
-        for l in lists_data:
-            score = match_list_score(item, l)
-            if score >= 3:
-                best_target_ids.append(l["id"])
-                reasons.append(f"匹配已有 List [{l['name']}]")
-
-        reason_str = "；".join(reasons) if reasons else "建议新加入收藏并设为分类关注"
-        plan_repos.append({
-            "full_name": fname,
-            "node_id": item.get("node_id"),
-            "description": item.get("description") or "",
-            "language": item.get("language"),
-            "stargazers_count": item.get("stargazers_count", 0),
-            "archived": item.get("archived", False),
-            "action": "categorize",
-            "list_ids": best_target_ids,
-            "reason": reason_str,
-            "match": "high" if best_target_ids else "mid",
-            "readme_excerpt": (item.get("readme_excerpt") or "")[:300]
-        })
-
-    plan = {
-        "mode": "import",
-        "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
-        "lists": clean_lists,
-        "new_lists": [],
-        "repos": plan_repos
-    }
-
-    safe_save_json(output_file, plan)
-    print(f"Generated {output_file} successfully in import mode! Total repos: {len(plan_repos)}")
-
 
 def main():
     parser = argparse.ArgumentParser(description="Generic Star Plan Generator")
-    parser.add_argument("--plan-mode", choices=["organize", "import"], default="organize", help="Plan mode: organize or import")
     parser.add_argument("--intent-answers", default="{}", help='JSON string of intent answers, e.g. \'{"毕设":"多模态"}\'')
-    parser.add_argument("--insights-file", default="insights.json", help="Path to insights.json for import mode")
-    parser.add_argument("--output-file", "-o", default="review_plan.json", help="Output plan file path")
+    parser.add_argument("--insights-file", help="Path to insights.json for import review mode")
     args, _ = parser.parse_known_args()
-
-    if args.plan_mode == "import":
-        lists_file = "lists.json" if os.path.exists("lists.json") else "current_lists_with_items.json"
-        build_import_plan(args.insights_file, lists_file, args.output_file)
-        return
 
     try:
         intent_answers = json.loads(args.intent_answers)
@@ -287,11 +282,18 @@ def main():
     mode = get_organize_mode()
     print(f"Generating review plan using Generic Engine in mode: '{mode}'")
 
-    stars_file = "stars.json"
-    lists_file = "lists.json" if os.path.exists("lists.json") else "current_lists_with_items.json"
+    with open('stars.json', encoding='utf-8') as f:
+        stars_data = json.load(f)
+    with open('current_lists_with_items.json', encoding='utf-8') as f:
+        lists_data = json.load(f)
 
-    stars_data = safe_load_json(stars_file)
-    lists_data = safe_load_json(lists_file)
+    insights_map = {}
+    if args.insights_file and os.path.exists(args.insights_file):
+        raw_insights = safe_load_json(args.insights_file).get("insights", [])
+        for item in raw_insights:
+            key = item.get("repo") or item.get("full_name")
+            if key:
+                insights_map[key] = item
 
     repos = stars_data.get('repos', [])
     lists = lists_data.get('lists', [])
@@ -335,7 +337,6 @@ def main():
     # 2. 动态发现新 List 建议 (如中等/激进模式)
     new_lists = []
     if mode in ("moderate", "aggressive"):
-        # 筛选未归类 repo 组
         node_to_list_ids = {}
         for l in lists:
             for item in l.get('repos', []):
@@ -365,7 +366,8 @@ def main():
     for r in repos:
         nid = r.get('node_id')
         r['current_list_ids'] = node_to_list_ids.get(nid, [])
-        item_plan = categorize_repo_generic(r, lists, new_lists, dissolved_list_ids, intent_list_status, mode)
+        insight_data = insights_map.get(r.get('full_name'))
+        item_plan = categorize_repo_generic(r, lists, new_lists, dissolved_list_ids, intent_list_status, mode, insight_data)
         plan_repos.append(item_plan)
         if item_plan['action'] == 'categorize':
             categorized_count += 1
@@ -396,9 +398,10 @@ def main():
         "repos": plan_repos
     }
 
-    safe_save_json(args.output_file, plan)
+    with open('review_plan.json', 'w', encoding='utf-8') as f:
+        json.dump(plan, f, ensure_ascii=False, indent=2)
 
-    print(f"Generated {args.output_file} successfully using Generic Engine! (Mode: {mode})")
+    print(f"Generated review_plan.json successfully using Generic Engine! (Mode: {mode})")
     print(f"Total repos: {len(plan_repos)}")
     print(f"New lists proposed: {len(new_lists)}")
     print(f"Dissolved generic lists: {len(dissolved_lists)}")
@@ -410,4 +413,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

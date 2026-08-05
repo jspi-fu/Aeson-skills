@@ -51,43 +51,105 @@ def safe_save_json(file_path, data, indent=2):
         json.dump(data, f, ensure_ascii=False, indent=indent)
 
 
+def _env_file_candidates():
+    """Ordered list of .env locations to consult (first hit wins per-key)."""
+    candidates = []
+    # 0) Explicit override: let the host (e.g. WorkBuddy) point at any managed secret file.
+    explicit = os.getenv("GH_STAR_MANAGER_ENV")
+    if explicit:
+        candidates.append(explicit)
+    # 1) User-level config dir: travels with the user across every workspace/project.
+    candidates.append(os.path.join(os.path.expanduser("~"), ".gh-star-manager", ".env"))
+    # 2) Legacy skill-dir .env: kept only for backward compatibility.
+    candidates.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env"))
+    return candidates
+
+
 def load_dotenv():
-    """Load .env exclusively from the skill directory, overriding system environment variables."""
-    skill_dir_env = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
-    if os.path.exists(skill_dir_env):
+    """Load config from a cascade of .env locations.
+
+    Resolution priority (highest wins), applied per-key:
+      1. Process environment already set (e.g. WorkBuddy-managed secrets / shell env).
+         These are NEVER overwritten by file values.
+      2. GH_STAR_MANAGER_ENV  -> explicit .env path supplied by the host.
+      3. ~/.gh-star-manager/.env  -> user-level, portable across workspaces.
+      4. <skill-dir>/.env  -> legacy location (backward compatible).
+
+    Because existing os.environ values are preserved, a token injected by
+    WorkBuddy (or the user's shell) always takes precedence over any file,
+    which is what lets the skill run freely without a bundled .env.
+    """
+    for path in _env_file_candidates():
+        if not path or not os.path.exists(path):
+            continue
         try:
-            with open(skill_dir_env, 'r', encoding='utf-8') as f:
+            with open(path, "r", encoding="utf-8") as f:
                 for line in f:
                     line = line.strip()
-                    if line and not line.startswith('#') and '=' in line:
-                        k, v = line.split('=', 1)
-                        k = k.strip()
-                        v = v.strip().strip('"').strip("'")
+                    if not line or line.startswith("#") or "=" not in line:
+                        continue
+                    k, v = line.split("=", 1)
+                    k, v = k.strip(), v.strip().strip('"').strip("'")
+                    if k and k not in os.environ:
                         os.environ[k] = v
         except Exception as e:
-            logger.warning(f"Failed to load env file {skill_dir_env}: {e}")
+            logger.warning(f"Failed to load env file {path}: {e}")
+
+
+# Auto-load on import so every entry script (which imports utils) inherits the
+# same cascade without needing to call load_dotenv() explicitly.
+load_dotenv()
+
 
 def get_github_token():
-    load_dotenv()
     token = os.getenv("GITHUB_TOKEN")
     if not token:
         print(json.dumps({
             "status": "error",
-            "message": "Missing GITHUB_TOKEN environment variable. Please set GITHUB_TOKEN in your environment or .env file."
+            "message": (
+                "Missing GITHUB_TOKEN. Resolution order: "
+                "(1) environment variable GITHUB_TOKEN (set by WorkBuddy/shell), "
+                "(2) GH_STAR_MANAGER_ENV path, "
+                "(3) ~/.gh-star-manager/.env, "
+                "(4) <skill-dir>/.env. "
+                "Set GITHUB_TOKEN in your shell/WorkBuddy env, "
+                "or create ~/.gh-star-manager/.env with GITHUB_TOKEN=ghp_xxx"
+            )
         }), file=sys.stderr)
         sys.exit(1)
     return token
 
 def get_organize_mode():
-    load_dotenv()
     mode = os.getenv("STARS_ORGANIZE_MODE", "moderate").lower().strip()
     if mode not in ("conservative", "moderate", "aggressive"):
         logger.warning(f"Unknown STARS_ORGANIZE_MODE '{mode}', defaulting to 'moderate'")
         return "moderate"
     return mode
 
+def get_workdir():
+    """Dedicated working directory for all session artifacts.
+
+    Lives outside the user's project (defaults to ~/.gh-star-manager) so the
+    skill never litters the workspace it runs in. Override with
+    GH_STAR_MANAGER_WORKDIR to point at any WorkBuddy-managed location.
+    """
+    workdir = os.environ.get("GH_STAR_MANAGER_WORKDIR") or os.path.join(
+        os.path.expanduser("~"), ".gh-star-manager"
+    )
+    try:
+        os.makedirs(workdir, exist_ok=True)
+    except Exception:
+        pass
+    return workdir
+
+
 def cleanup_session_temp_files():
-    """清除分类会话产生的所有临时中间产物与本地临时 stars 状态。"""
+    """清除分类会话产生的所有临时中间产物与本地临时 stars 状态。
+
+    同时清理专用工作目录（默认 ~/.gh-star-manager）与当前目录（历史遗留兼容），
+    避免把产物残留在用户项目里。
+    """
+    workdir = get_workdir()
     temp_files = [
         "stars.json",
         "lists.json",
@@ -104,16 +166,19 @@ def cleanup_session_temp_files():
         "scratch_schema.py"
     ]
     cleaned = []
-    for f in temp_files:
-        if os.path.exists(f):
-            try:
-                os.remove(f)
-                cleaned.append(f)
-            except Exception as e:
-                logger.warning(f"Failed to remove temp file {f}: {e}")
+    # 优先清理专用工作目录；同时兼容旧逻辑（产物写在 cwd 的情况）。
+    for base in (workdir, "."):
+        for f in temp_files:
+            p = os.path.join(base, f)
+            if os.path.exists(p):
+                try:
+                    os.remove(p)
+                    cleaned.append(p)
+                except Exception as e:
+                    logger.warning(f"Failed to remove temp file {p}: {e}")
 
-    # Remove local stars state file (~/.gh-star-manager/stars_state.json)
-    stars_state_file = os.path.expanduser("~/.gh-star-manager/stars_state.json")
+    # Remove local stars state file (usually already inside workdir).
+    stars_state_file = os.path.join(workdir, "stars_state.json")
     if os.path.exists(stars_state_file):
         try:
             os.remove(stars_state_file)

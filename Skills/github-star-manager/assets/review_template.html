@@ -142,6 +142,21 @@ function renderStats(){
 
 function setFilter(f){ filter=f; render(); }
 
+function lucideIcon(name, size=15, color="currentColor", extraClass=""){
+  const icons = {
+    folder: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px" class="lucide lucide-folder ${extraClass}"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L8.6 3.3A2 2 0 0 0 6.9 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>`,
+    sparkles: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px" class="lucide lucide-sparkles ${extraClass}"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>`,
+    lock: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px" class="lucide lucide-lock ${extraClass}"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
+    trash: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px" class="lucide lucide-trash-2 ${extraClass}"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>`,
+    bot: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px" class="lucide lucide-bot ${extraClass}"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>`,
+    target: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px" class="lucide lucide-target ${extraClass}"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`,
+    rocket: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px" class="lucide lucide-rocket ${extraClass}"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.71.79-1.81.79-1.81l-1.98-1.98s-1.1.08-1.81.79zm7.5-7.5L5.03 15.97c-.71.71-.79 1.81-.79 1.81l1.98 1.98s1.1-.08 1.81-.79L15 12m-3-3 4.5-4.5c.78-.78 1.92-1.12 3-1 0 1.08-.22 2.22-1 3L14 11m-2-2 3 3"/></svg>`,
+    alert: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px" class="lucide lucide-alert-triangle ${extraClass}"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>`,
+    star: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px" class="lucide lucide-star ${extraClass}"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`
+  };
+  return icons[name] || '';
+}
+
 function renderLists(){
   const body = document.getElementById("lists-body");
   const disListMap = {};
@@ -160,7 +175,7 @@ function renderLists(){
 
   // Block 1: 现有 List
   if(existingLists.length){
-    html += '<div style="font-weight:600;margin:8px 0 4px;font-size:13px;color:var(--text)">📁 现有标准 List</div>';
+    html += `<div style="font-weight:600;margin:8px 0 6px;font-size:13px;color:var(--text);display:flex;align-items:center;gap:4px">${lucideIcon('folder',16,'#3370ff')} 现有标准 List</div>`;
     html += existingLists.map(l=>`
       <div class="list-row">
         <span class="lname">${esc(l.name)}</span>
@@ -168,36 +183,36 @@ function renderLists(){
       </div>`).join("");
   }
 
-  // Block 2: ✨ 建议新建 List
+  // Block 2: 建议新建 List
   if(newLists.length){
-    html += '<div style="font-weight:600;margin:12px 0 4px;font-size:13px;color:#245bdb">✨ 建议新建 List</div>';
+    html += `<div style="font-weight:600;margin:12px 0 6px;font-size:13px;color:#245bdb;display:flex;align-items:center;gap:4px">${lucideIcon('sparkles',16,'#245bdb')} 建议新建 List</div>`;
     html += newLists.map(l=>`
       <div class="list-row" style="background:#f0f5ff;padding:6px 8px;border-radius:6px">
         <span class="lname">${esc(l.name)}</span>
-        <span class="new-tag">✨ 新建</span>
+        <span class="new-tag" style="display:inline-flex;align-items:center;gap:2px">${lucideIcon('sparkles',11,'#fff')} 新建</span>
         <span class="ldesc">${esc(l.description||"建议新建标签")}</span>
         <button class="rm-list" onclick="removeNewList('${esc(l.id)}')">删除</button>
       </div>`).join("");
   }
 
-  // Block 3: 🔒 意图驱动/锁定 List
+  // Block 3: 意图驱动/锁定 List
   if(intentLists.length){
-    html += '<div style="font-weight:600;margin:12px 0 4px;font-size:13px;color:#5c4ebd">🔒 意图驱动 / 受限 List</div>';
+    html += `<div style="font-weight:600;margin:12px 0 6px;font-size:13px;color:#5c4ebd;display:flex;align-items:center;gap:4px">${lucideIcon('lock',16,'#5c4ebd')} 意图驱动 / 受限 List</div>`;
     html += intentLists.map(l=>`
       <div class="list-row" style="background:#f5f3ff;padding:6px 8px;border-radius:6px">
         <span class="lname">${esc(l.name)}</span>
-        <span class="new-tag" style="background:#7c3aed">🔒 意图受限</span>
+        <span class="new-tag" style="background:#7c3aed;display:inline-flex;align-items:center;gap:2px">${lucideIcon('lock',11,'#fff')} 意图受限</span>
         <span class="ldesc">${esc(intentListMap[l.id]?.rule || "AI 方案受限保护，不自动新增/删除；支持手动勾选")}</span>
       </div>`).join("");
   }
 
-  // Block 4: 🗑️ 建议解散/删除 List
+  // Block 4: 建议解散/删除 List
   if(dissolvedLists.length){
-    html += '<div style="font-weight:600;margin:12px 0 4px;font-size:13px;color:var(--red)">🗑️ 建议解散 / 删除的泛化 List</div>';
+    html += `<div style="font-weight:600;margin:12px 0 6px;font-size:13px;color:var(--red);display:flex;align-items:center;gap:4px">${lucideIcon('trash',16,'var(--red)')} 建议解散 / 删除的泛化 List</div>`;
     html += dissolvedLists.map(l=>`
       <div class="list-row" style="background:#fff5f5;padding:6px 8px;border-radius:6px;border-color:#f87171">
         <span class="lname" style="text-decoration:line-through">${esc(l.name)}</span>
-        <span class="new-tag" style="background:var(--red)">🗑️ 建议解散</span>
+        <span class="new-tag" style="background:var(--red);display:inline-flex;align-items:center;gap:2px">${lucideIcon('trash',11,'#fff')} 建议解散</span>
         <span class="ldesc" style="color:var(--red)">${esc(disListMap[l.id]?.reason || "禁用泛化兜底标签，解散并重新归类内含项目")}</span>
       </div>`).join("");
   }
@@ -210,7 +225,7 @@ function repoCard(r, idx){
   const isDanger = r.action==="unstar" || r.action==="reject";
   const badges = [];
   if(r.language) badges.push(`<span class="badge lang">${esc(r.language)}</span>`);
-  if(r.stargazers_count!=null) badges.push(`<span class="badge">★ ${r.stargazers_count}</span>`);
+  if(r.stargazers_count!=null) badges.push(`<span class="badge" style="display:inline-flex;align-items:center;gap:2px">${lucideIcon('star',12,'#eab308')} ${r.stargazers_count}</span>`);
   if(r.archived) badges.push(`<span class="badge warnb">archived</span>`);
   if(r.match) badges.push(`<span class="badge match-${esc(r.match)}">匹配:${esc(r.match)}</span>`);
 
@@ -219,13 +234,41 @@ function repoCard(r, idx){
 
   const pick = r.action==="categorize" ? `<div class="lists-pick">` + allActiveLists().map(l=>{
     const on = (r.list_ids||[]).includes(l.id);
-    const badgeHtml = l.is_new ? '<span class="new-tag" style="font-size:10px;padding:0 3px">✨新</span>' : '';
+    const badgeHtml = l.is_new ? `<span class="new-tag" style="font-size:10px;padding:0 3px;display:inline-flex;align-items:center;gap:1px">${lucideIcon('sparkles',9,'#fff')}新</span>` : '';
     return `<label class="${on?"checked":""}"><input type="checkbox" ${on?"checked":""} onchange="toggleList(${idx},'${esc(l.id)}')">${esc(l.name)}${badgeHtml}</label>`;
   }).join("") + `</div>` : "";
 
   const reasonHtml = r.reason ? `<div class="reason">归类理由:${esc(r.reason)}</div>` : "";
   const issuesHtml = r.issues_note ? `<div class="reason issues">问题提示:${esc(r.issues_note)}</div>` : "";
-  const readmeHtml = r.readme_excerpt ? `<details class="readme"><summary>README 摘要</summary><pre>${esc(r.readme_excerpt)}</pre></details>` : "";
+  
+  let aiSummaryHtml = "";
+  if(r.ai_summary){
+    const sum = r.ai_summary;
+    const featuresList = (sum.features||[]).map(f=>`<li>${esc(f)}</li>`).join("");
+    aiSummaryHtml = `
+      <details class="readme" open style="margin-top:10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px">
+        <summary style="font-weight:600;color:#2563eb;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:4px">
+          ${lucideIcon('bot',16,'#2563eb')} AI 智能评估报告
+        </summary>
+        <div style="margin-top:8px;font-size:12px;line-height:1.6;color:#334155">
+          <div style="margin-bottom:6px;display:flex;align-items:flex-start;gap:4px">
+            <span style="flex-shrink:0">${lucideIcon('target',14,'#2563eb')}</span>
+            <div><strong>产品定位与功能：</strong>${esc(sum.positioning||"")}</div>
+          </div>
+          ${featuresList?`<div style="margin-bottom:6px">
+            <div style="display:flex;align-items:center;gap:4px"><span>${lucideIcon('rocket',14,'#059669')}</span><strong>核心特色：</strong></div>
+            <ul style="margin:4px 0 0 20px;padding:0;color:#475569">${featuresList}</ul>
+          </div>`:""}
+          <div style="display:flex;align-items:flex-start;gap:4px">
+            <span style="flex-shrink:0">${lucideIcon('alert',14,'#d97706')}</span>
+            <div><strong>Issues 风险与宣传符合度：</strong><span style="color:#475569">${esc(sum.issues_summary||"")}</span></div>
+          </div>
+        </div>
+      </details>
+    `;
+  } else if(r.readme_excerpt){
+    aiSummaryHtml = `<details class="readme"><summary>README 摘要</summary><pre>${esc(r.readme_excerpt)}</pre></details>`;
+  }
 
   return `<div class="card ${r.action==="unstar"?"unstar":""} ${r.action==="reject"?"reject":""} ${hiddenByFilter?"hidden":""}">
     <div class="head">
@@ -235,7 +278,7 @@ function repoCard(r, idx){
     ${r.description?`<div class="desc">${esc(r.description)}</div>`:""}
     ${reasonHtml}${issuesHtml}
     <div class="controls">${seg}${pick}</div>
-    ${readmeHtml}
+    ${aiSummaryHtml}
   </div>`;
 }
 

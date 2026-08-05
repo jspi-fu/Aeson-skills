@@ -8,7 +8,9 @@ import os
 import json
 from datetime import datetime, timedelta, timezone
 
-STATE_DIR = os.path.expanduser("~/.gh-star-manager")
+from utils import get_workdir
+
+STATE_DIR = get_workdir()
 PROFILE_PATH = os.path.join(STATE_DIR, "profile.json")
 STARS_STATE_PATH = os.path.join(STATE_DIR, "stars_state.json")
 

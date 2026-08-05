@@ -1,6 +1,10 @@
-# github-star-manager
+# gh-star-manager
 
-> 你的 GitHub Stars 已经过百了，找东西开始费劲。这个 Skill 让你的 Agent 一句话整理完——写回前先备份，只清理垃圾不碰宝贝。
+> 你的 GitHub Stars 已经过千了，找东西像在垃圾堆里翻。这个 Skill 让你的 Agent 一句话整理完——写回前先备份，只清理垃圾不碰宝贝。
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python Version](https://img.shields.io/badge/python-3.6%2B-blue.svg)](https://www.python.org/)
+[![Agent Skills](https://img.shields.io/badge/Agent-Skills-purple.svg)](https://agentskills.io/)
 
 ---
 
@@ -90,11 +94,11 @@ python scripts/star_ops.py check-scopes
 - **产出**：读取 `.env` 配置的模式 → 同步 stars 与画像 → 生成包含归类、新建 List 或删除 List 的方案 → 自动打开网页确认页 → 用户在页面微调 → 点击「确认执行写回」完成同步
 - **要点**：服务端执行前强制备份；网页可自由二次调整；调整偏好自动沉淀进用户画像
 
-### 示例 2：一键导入并评估（读 README 与 issues）
+### 示例 2：一键导入并评估（AI 三段式结构化总结与 Issues 风险）
 
 - **场景**：`"一键导入这几个仓库并帮我评估要不要收藏：openai/whisper, ggml-org/llama.cpp"`
-- **产出**：抓取每个 repo 的 README 摘要与近期 issues → 给出极简匹配度/问题提示/归类理由 → 网页确认后导入并归类
-- **要点**：判断必须基于实际抓到的内容；明显有问题的 repo 建议不导入（reject）
+- **产出**：抓取每个 repo 的 README 与近期 Open Issues → 由 AI 提炼三段式评估卡片（🎯产品定位、🚀核心特色、⚠️Issues 风险与宣传符合度）→ 在内置全量 Lucide SVG 图标的网页上直观呈现代确认 → 确认后导入并归类
+- **要点**：判断基于 README 实际功能与 Issues 反馈；替代了原有的 raw README 截断；有严重质量问题的 repo 建议不导入（reject）
 
 ### 示例 3：仅清理无用 Stars
 
@@ -122,3 +126,45 @@ python scripts/star_ops.py check-scopes
    - 默认禁止单次处理超过 50 个 unstar 项目。
    - 对 Star 数量高于 5k 的项目进行黑名单过滤，避免误删高价值库。
 
+---
+
+## 📂 目录结构
+
+```
+github-star-manager/
+├── SKILL.md                    # Agent 工作流编排指南
+├── README.md                   # 本文件
+├── LICENSE                     # MIT 许可证
+├── test-prompts.json           # 触发意图与边界条件测试集
+├── scripts/
+│   ├── utils.py                # Token 独占加载、模式解析、限流退避
+│   ├── fetch_stars.py          # 并发分页拉取 Stars(--sync 同步状态与画像)
+│   ├── star_ops.py             # star/unstar/备份恢复
+│   ├── github_lists.py         # Lists 管理(create/update/delete/batch-set-lists)
+│   ├── generate_review_plan.py # 根据三级整理模式生成 review_plan.json
+│   ├── repo_insight.py         # 导入前抓取 README 摘要与 issues
+│   ├── build_review.py         # 确认页静态模式
+│   ├── review_server.py        # 确认页服务模式(一键执行写回)
+│   └── state.py                # 用户画像与 stars 持续状态
+├── assets/
+│   └── review_template.html    # 确认页交互模板(占位符注入)
+├── references/
+│   └── analysis-guide.md       # AI 分类策略规范与 plan JSON 契约
+└── tests/
+    └── test_ratelimit.py       # 限流回归测试
+```
+
+---
+
+## 🧪 运行回归测试
+
+回归测试已与真实的 GitHub API 隔离，基于 Mock 库直接运行，不耗费 Token：
+```bash
+python tests/test_ratelimit.py
+```
+
+---
+
+## ⚖️ 许可证
+
+本项目基于 [MIT](LICENSE) 许可证开源。

@@ -1,0 +1,24 @@
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Temporary JSON files created during skill operations
+stars.json
+lists.json
+new_repos.json
+set_lists.json
+unstar_repos.json
+restore_repos.json
+restore_lists.json
+insights.json
+review_plan.json
+review_plan_saved.json
+review.html
+import_star.json
+
+# Local Environment
+.env
+.env.local
+
+# Backup directories
+.github-stars-backup/

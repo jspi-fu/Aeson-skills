@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitHub Stars 方案确认</title>
+<style>
+  :root{--bg:#f6f7f9;--card:#fff;--line:#e4e7eb;--text:#1f2329;--sub:#646a73;
+        --blue:#3370ff;--green:#34a853;--red:#d83931;--amber:#f5a623;--tag:#eef1f5}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);padding-bottom:90px}
+  .wrap{max-width:960px;margin:0 auto;padding:16px}
+  h1{font-size:20px;margin:8px 0 4px}
+  .sub{color:var(--sub);font-size:13px;margin-bottom:14px}
+  .banner{border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:14px;line-height:1.6}
+  .banner.warn{background:#fdf3e3;border:1px solid #f5d9a8}
+  .banner.ok{background:#e8f5ec;border:1px solid #b7dfc3}
+  .banner.err{background:#fdeaea;border:1px solid #f2b8b5}
+  .stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer}
+  .stat b{font-size:17px;display:block}
+  .stat.active{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue)}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px}
+  .panel h2{font-size:15px;margin:0 0 10px}
+  .list-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line);font-size:13px}
+  .list-row:last-child{border-bottom:none}
+  .list-row .lname{font-weight:600}
+  .list-row .ldesc{color:var(--sub);flex:1}
+  .new-tag{background:var(--amber);color:#fff;border-radius:4px;font-size:11px;padding:1px 6px}
+  .addlist{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .addlist input{flex:1;min-width:160px;padding:7px 10px;border:1px solid var(--line);border-radius:6px;font-size:13px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+  .card.unstar{border-color:#f2b8b5;background:#fffafa}
+  .card.reject{opacity:.55}
+  .head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .head a{font-weight:600;color:var(--text);text-decoration:none;font-size:14px}
+  .head a:hover{color:var(--blue)}
+  .badge{border-radius:4px;font-size:11px;padding:1px 7px;background:var(--tag);color:var(--sub)}
+  .badge.lang{background:#e3ecff;color:#245bdb}
+  .badge.warnb{background:#fdeaea;color:var(--red)}
+  .badge.match-high{background:#e8f5ec;color:var(--green)}
+  .badge.match-mid{background:#fdf3e3;color:#b97b0a}
+  .badge.match-low{background:#fdeaea;color:var(--red)}
+  .desc{color:var(--sub);font-size:13px;margin:6px 0}
+  .reason{font-size:13px;margin:4px 0;padding:6px 10px;background:var(--tag);border-radius:6px}
+  .reason.issues{background:#fdf3e3}
+  .controls{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;margin-top:8px}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .seg button{border:none;background:#fff;padding:5px 12px;font-size:12px;cursor:pointer;color:var(--sub)}
+  .seg button.on{color:#fff}
+  .seg button.on.act-categorize{background:var(--blue)}
+  .seg button.on.act-keep{background:#8a919f}
+  .seg button.on.act-unstar,.seg button.on.act-reject{background:var(--red)}
+  .lists-pick{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+  .lists-pick label{display:inline-flex;align-items:center;gap:4px;font-size:12px;border:1px solid var(--line);border-radius:6px;padding:4px 9px;cursor:pointer;background:#fff}
+  .lists-pick label.checked{border-color:var(--blue);background:#e3ecff}
+  details.readme{margin-top:8px;font-size:12px;color:var(--sub)}
+  details.readme summary{cursor:pointer}
+  details.readme pre{white-space:pre-wrap;word-break:break-all;background:var(--tag);padding:8px;border-radius:6px;max-height:220px;overflow:auto}
+  .rm-list{border:none;background:none;color:var(--red);cursor:pointer;font-size:12px}
+  #footer{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:12px 0;z-index:10}
+  #footer .wrap{display:flex;align-items:center;gap:10px;padding:0 16px}
+  #footer .sum{font-size:13px;color:var(--sub);flex:1}
+  .btn{border:none;border-radius:6px;padding:9px 18px;font-size:13px;cursor:pointer}
+  .btn.primary{background:var(--blue);color:#fff}
+  .btn.green{background:var(--green);color:#fff}
+  .btn.ghost{background:#fff;border:1px solid var(--line);color:var(--text)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 id="title"></h1>
+  <div class="sub" id="subtitle"></div>
+  <div id="banners"></div>
+  <div class="stats" id="stats"></div>
+
+  <div class="panel" id="lists-panel">
+    <h2>List 结构方案 <span style="font-weight:normal;color:var(--sub);font-size:12px">(区分现有/新建/解散/意图锁定；支持手动勾选调整)</span></h2>
+    <div id="lists-body"></div>
+    <div class="addlist">
+      <input id="nl-name" placeholder="新 List 名称">
+      <input id="nl-desc" placeholder="描述(可选)">
+      <button class="btn ghost" onclick="addNewList()">+ 新建 List</button>
+    </div>
+  </div>
+
+  <div id="cards"></div>
+</div>
+
+<div id="footer">
+  <div class="wrap">
+    <div class="sum" id="footsum"></div>
+    <button class="btn ghost" onclick="exportPlan()">导出方案 JSON</button>
+    <button class="btn primary hidden" id="btn-save" onclick="savePlan()">保存方案</button>
+    <button class="btn green hidden" id="btn-exec" onclick="executePlan()">确认执行写回</button>
+  </div>
+</div>
+
+<script>
+const DATA = __REVIEW_DATA__;
+const EXEC = __EXEC_CONFIG__;
+
+const IMPORT_MODE = DATA.mode === "import";
+const ACTIONS = IMPORT_MODE
+  ? [["categorize","导入并归类"],["keep","仅导入"],["reject","不导入"]]
+  : [["categorize","归类"],["keep","保持"],["unstar","取消 star"]];
+const LIST_LABEL = IMPORT_MODE ? "导入并归类到" : "归入";
+
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+function getDissolvedListIds(){
+  return (DATA.dissolved_lists||[]).map(l=>l.id).concat((DATA.delete_list_ids||[]));
+}
+function getIntentListIds(){
+  return (DATA.intent_lists||[]).map(l=>l.id);
+}
+
+function allActiveLists(){
+  const disIds = getDissolvedListIds();
+  return (DATA.lists||[]).filter(l=>!disIds.includes(l.id)).concat(DATA.new_lists||[]);
+}
+
+let filter = "all";
+
+function counts(){
+  const c = {all:DATA.repos.length, categorize:0, keep:0};
+  c[IMPORT_MODE?"reject":"unstar"] = 0;
+  DATA.repos.forEach(r=>{ c[r.action]=(c[r.action]||0)+1; });
+  return c;
+}
+
+function renderStats(){
+  const c = counts();
+  const items = [["all","全部"],["categorize",IMPORT_MODE?"归类导入":"归类"],["keep",IMPORT_MODE?"仅导入":"保持"],[IMPORT_MODE?"reject":"unstar",IMPORT_MODE?"不导入":"取消 star"]];
+  document.getElementById("stats").innerHTML = items.map(([k,label])=>
+    `<div class="stat ${filter===k?"active":""}" onclick="setFilter('${k}')"><b>${c[k]||0}</b>${label}</div>`).join("");
+  document.getElementById("footsum").innerHTML =
+    `共 ${c.all} 个 repo: 归类 <b>${c.categorize}</b> / ${IMPORT_MODE?"仅导入":"保持"} <b>${c.keep}</b> / ${IMPORT_MODE?"不导入":"unstar"} <b>${c[IMPORT_MODE?"reject":"unstar"]||0}</b>`;
+}
+
+function setFilter(f){ filter=f; render(); }
+
+function renderLists(){
+  const body = document.getElementById("lists-body");
+  const disListMap = {};
+  (DATA.dissolved_lists||[]).forEach(l=>{ disListMap[l.id] = l; });
+
+  const intentListMap = {};
+  (DATA.intent_lists||[]).forEach(l=>{ intentListMap[l.id] = l; });
+
+  const disIds = getDissolvedListIds();
+  const existingLists = (DATA.lists||[]).filter(l=>!disIds.includes(l.id) && !intentListMap[l.id]);
+  const intentLists = (DATA.lists||[]).filter(l=>intentListMap[l.id]);
+  const newLists = DATA.new_lists || [];
+  const dissolvedLists = (DATA.lists||[]).filter(l=>disIds.includes(l.id));
+
+  let html = '';
+
+  // Block 1: 现有 List
+  if(existingLists.length){
+    html += '<div style="font-weight:600;margin:8px 0 4px;font-size:13px;color:var(--text)">📁 现有标准 List</div>';
+    html += existingLists.map(l=>`
+      <div class="list-row">
+        <span class="lname">${esc(l.name)}</span>
+        <span class="ldesc">${esc(l.description||"")}</span>
+      </div>`).join("");
+  }
+
+  // Block 2: ✨ 建议新建 List
+  if(newLists.length){
+    html += '<div style="font-weight:600;margin:12px 0 4px;font-size:13px;color:#245bdb">✨ 建议新建 List</div>';
+    html += newLists.map(l=>`
+      <div class="list-row" style="background:#f0f5ff;padding:6px 8px;border-radius:6px">
+        <span class="lname">${esc(l.name)}</span>
+        <span class="new-tag">✨ 新建</span>
+        <span class="ldesc">${esc(l.description||"建议新建标签")}</span>
+        <button class="rm-list" onclick="removeNewList('${esc(l.id)}')">删除</button>
+      </div>`).join("");
+  }
+
+  // Block 3: 🔒 意图驱动/锁定 List
+  if(intentLists.length){
+    html += '<div style="font-weight:600;margin:12px 0 4px;font-size:13px;color:#5c4ebd">🔒 意图驱动 / 受限 List</div>';
+    html += intentLists.map(l=>`
+      <div class="list-row" style="background:#f5f3ff;padding:6px 8px;border-radius:6px">
+        <span class="lname">${esc(l.name)}</span>
+        <span class="new-tag" style="background:#7c3aed">🔒 意图受限</span>
+        <span class="ldesc">${esc(intentListMap[l.id]?.rule || "AI 方案受限保护，不自动新增/删除；支持手动勾选")}</span>
+      </div>`).join("");
+  }
+
+  // Block 4: 🗑️ 建议解散/删除 List
+  if(dissolvedLists.length){
+    html += '<div style="font-weight:600;margin:12px 0 4px;font-size:13px;color:var(--red)">🗑️ 建议解散 / 删除的泛化 List</div>';
+    html += dissolvedLists.map(l=>`
+      <div class="list-row" style="background:#fff5f5;padding:6px 8px;border-radius:6px;border-color:#f87171">
+        <span class="lname" style="text-decoration:line-through">${esc(l.name)}</span>
+        <span class="new-tag" style="background:var(--red)">🗑️ 建议解散</span>
+        <span class="ldesc" style="color:var(--red)">${esc(disListMap[l.id]?.reason || "禁用泛化兜底标签，解散并重新归类内含项目")}</span>
+      </div>`).join("");
+  }
+
+  body.innerHTML = html || '<div style="color:var(--sub);font-size:13px">暂无 List，可在下方新建。</div>';
+}
+
+function repoCard(r, idx){
+  const hiddenByFilter = filter!=="all" && r.action!==filter;
+  const isDanger = r.action==="unstar" || r.action==="reject";
+  const badges = [];
+  if(r.language) badges.push(`<span class="badge lang">${esc(r.language)}</span>`);
+  if(r.stargazers_count!=null) badges.push(`<span class="badge">★ ${r.stargazers_count}</span>`);
+  if(r.archived) badges.push(`<span class="badge warnb">archived</span>`);
+  if(r.match) badges.push(`<span class="badge match-${esc(r.match)}">匹配:${esc(r.match)}</span>`);
+
+  const seg = `<div class="seg">` + ACTIONS.map(([act,label])=>
+    `<button class="${r.action===act?"on act-"+act:"act-"+act}" onclick="setAction(${idx},'${act}')">${label}</button>`).join("") + `</div>`;
+
+  const pick = r.action==="categorize" ? `<div class="lists-pick">` + allActiveLists().map(l=>{
+    const on = (r.list_ids||[]).includes(l.id);
+    const badgeHtml = l.is_new ? '<span class="new-tag" style="font-size:10px;padding:0 3px">✨新</span>' : '';
+    return `<label class="${on?"checked":""}"><input type="checkbox" ${on?"checked":""} onchange="toggleList(${idx},'${esc(l.id)}')">${esc(l.name)}${badgeHtml}</label>`;
+  }).join("") + `</div>` : "";
+
+  const reasonHtml = r.reason ? `<div class="reason">归类理由:${esc(r.reason)}</div>` : "";
+  const issuesHtml = r.issues_note ? `<div class="reason issues">问题提示:${esc(r.issues_note)}</div>` : "";
+  const readmeHtml = r.readme_excerpt ? `<details class="readme"><summary>README 摘要</summary><pre>${esc(r.readme_excerpt)}</pre></details>` : "";
+
+  return `<div class="card ${r.action==="unstar"?"unstar":""} ${r.action==="reject"?"reject":""} ${hiddenByFilter?"hidden":""}">
+    <div class="head">
+      <a href="https://github.com/${esc(r.full_name)}" target="_blank">${esc(r.full_name)}</a>
+      ${badges.join("")}
+    </div>
+    ${r.description?`<div class="desc">${esc(r.description)}</div>`:""}
+    ${reasonHtml}${issuesHtml}
+    <div class="controls">${seg}${pick}</div>
+    ${readmeHtml}
+  </div>`;
+}
+
+function render(){
+  renderStats();
+  renderLists();
+  document.getElementById("cards").innerHTML = DATA.repos.map(repoCard).join("");
+}
+
+function setAction(idx, act){
+  DATA.repos[idx].action = act;
+  if(act!=="categorize") DATA.repos[idx].list_ids = [];
+  render();
+}
+
+function toggleList(idx, id){
+  const r = DATA.repos[idx];
+  r.list_ids = r.list_ids || [];
+  const i = r.list_ids.indexOf(id);
+  if(i>=0) r.list_ids.splice(i,1); else r.list_ids.push(id);
+  render();
+}
+
+function addNewList(){
+  const name = document.getElementById("nl-name").value.trim();
+  if(!name){ alert("请填写 List 名称"); return; }
+  DATA.new_lists = DATA.new_lists || [];
+  DATA.new_lists.push({id:"NEW_"+(DATA.new_lists.length+1)+"_"+Date.now(), name,
+    description: document.getElementById("nl-desc").value.trim(), is_new:true});
+  document.getElementById("nl-name").value=""; document.getElementById("nl-desc").value="";
+  render();
+}
+
+function removeNewList(id){
+  DATA.new_lists = DATA.new_lists.filter(l=>l.id!==id);
+  DATA.repos.forEach(r=>{ r.list_ids=(r.list_ids||[]).filter(x=>x!==id); });
+  render();
+}
+
+function currentPlan(){
+  return {mode:DATA.mode, generated_at:DATA.generated_at,
+    lists:DATA.lists, new_lists:DATA.new_lists||[], repos:DATA.repos};
+}
+
+function exportPlan(){
+  const blob = new Blob([JSON.stringify(currentPlan(),null,2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "review_plan.json";
+  a.click();
+}
+
+async function post(payload){
+  const res = await fetch(EXEC.endpoint, {method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify(Object.assign({token:EXEC.token}, payload))});
+  return res.json();
+}
+
+async function savePlan(){
+  const out = await post({mode:"save_plan", plan:currentPlan()});
+  alert(out.ok ? ("方案已保存: "+out.path) : ("保存失败: "+(out.error||"")));
+}
+
+async function executePlan(){
+  const c = counts();
+  const danger = c[IMPORT_MODE?"reject":"unstar"]||0;
+  const msg = `即将执行:创建 ${(DATA.new_lists||[]).length} 个 List,归类 ${c.categorize} 个 repo`
+    + (IMPORT_MODE ? `,导入 ${c.keep+c.categorize} 个 repo` : "")
+    + (danger ? `,${IMPORT_MODE?"跳过":"取消 star"} ${danger} 个 repo` : "")
+    + `。\n\n此操作直接写回 GitHub,确认后不可自动撤销(可用备份恢复)。继续?`;
+  if(!confirm(msg)) return;
+  const btn = document.getElementById("btn-exec");
+  btn.disabled = true; btn.textContent = "执行中…(批量写回较慢,请勿关闭页面)";
+  try{
+    const out = await post({mode:"execute", plan:currentPlan()});
+    renderResult(out);
+  }catch(e){
+    document.getElementById("banners").innerHTML = `<div class="banner err">执行出错:${esc(String(e))}</div>`;
+    btn.disabled = false; btn.textContent = "确认执行写回";
+  }
+}
+
+function renderResult(out){
+  const b = document.getElementById("banners");
+  if(!out.ok){ b.innerHTML = `<div class="banner err">执行失败:${esc(out.error||"")}</div>`; return; }
+  const r = out.result || {};
+  const lines = [];
+  if(r.created_lists) lines.push(`新建 List:${r.created_lists.map(l=>esc(l.name)).join("、")||"无"}`);
+  if(r.categorized!=null) lines.push(`归类写回:${r.categorized} 个成功`);
+  if(IMPORT_MODE && r.starred!=null) lines.push(`新导入 star:${r.starred} 个`);
+  if(r.unstarred) lines.push(`已取消 star:${r.unstarred.length} 个`);
+  if(r.failed && r.failed.length) lines.push(`失败 ${r.failed.length} 个:${r.failed.slice(0,5).map(f=>esc(f.repo||f.node_id)).join("、")}${r.failed.length>5?"…":""}`);
+  b.innerHTML = `<div class="banner ok"><b>执行完成</b><br>${lines.join("<br>")||"无写操作"}</div>`;
+  document.getElementById("btn-exec").textContent = "已执行";
+  document.getElementById("btn-save").classList.add("hidden");
+}
+
+document.getElementById("title").textContent = IMPORT_MODE ? "批量导入确认" : "Stars 整理方案确认";
+document.getElementById("subtitle").textContent =
+  (DATA.generated_at ? "生成于 " + DATA.generated_at + " · " : "")
+  + (IMPORT_MODE ? "调整每个 repo 的处理方式后点击执行;「不导入」的 repo 不会 star"
+                 : "调整归类/取消 star 后点击执行;写回前请确保已创建备份");
+if(EXEC){
+  document.getElementById("btn-save").classList.remove("hidden");
+  document.getElementById("btn-exec").classList.remove("hidden");
+}else{
+  document.getElementById("banners").innerHTML =
+    '<div class="banner warn">静态模式:页面只读展示与调整,点击「导出方案 JSON」后交回 Agent 执行写回。</div>';
+}
+render();
+</script>
+</body>
+</html>

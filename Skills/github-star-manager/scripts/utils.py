@@ -101,23 +101,39 @@ def load_dotenv():
 load_dotenv()
 
 
+import subprocess
+
 def get_github_token():
     token = os.getenv("GITHUB_TOKEN")
-    if not token:
-        print(json.dumps({
-            "status": "error",
-            "message": (
-                "Missing GITHUB_TOKEN. Resolution order: "
-                "(1) environment variable GITHUB_TOKEN (set by WorkBuddy/shell), "
-                "(2) GH_STAR_MANAGER_ENV path, "
-                "(3) ~/.gh-star-manager/.env, "
-                "(4) <skill-dir>/.env. "
-                "Set GITHUB_TOKEN in your shell/WorkBuddy env, "
-                "or create ~/.gh-star-manager/.env with GITHUB_TOKEN=ghp_xxx"
-            )
-        }), file=sys.stderr)
-        sys.exit(1)
-    return token
+    if token:
+        return token
+
+    # Fallback to GitHub CLI token if `gh` is installed and authenticated
+    try:
+        res = subprocess.run(["gh", "auth", "token"], capture_output=True, text=True, timeout=5)
+        if res.returncode == 0 and res.stdout.strip():
+            fetched_token = res.stdout.strip()
+            os.environ["GITHUB_TOKEN"] = fetched_token
+            logger.info("Successfully fetched GITHUB_TOKEN from GitHub CLI (`gh auth token`)")
+            return fetched_token
+    except Exception:
+        pass
+
+    print(json.dumps({
+        "status": "error",
+        "message": (
+            "Missing GITHUB_TOKEN. Resolution order: "
+            "(1) environment variable GITHUB_TOKEN (set by WorkBuddy/shell), "
+            "(2) GH_STAR_MANAGER_ENV path, "
+            "(3) ~/.gh-star-manager/.env, "
+            "(4) <skill-dir>/.env, "
+            "(5) GitHub CLI (`gh auth token`). "
+            "To fix, run `gh auth login` in terminal, set GITHUB_TOKEN in your shell/WorkBuddy env, "
+            "or create ~/.gh-star-manager/.env with GITHUB_TOKEN=ghp_xxx"
+        )
+    }), file=sys.stderr)
+    sys.exit(1)
+
 
 def get_organize_mode():
     mode = os.getenv("STARS_ORGANIZE_MODE", "moderate").lower().strip()

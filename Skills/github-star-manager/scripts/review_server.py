@@ -132,6 +132,15 @@ def execute_plan(plan):
         if unstar_names:
             unstar_res = batch_unstar(repo_names=unstar_names)
 
+    # 5.5 更新本地 stars 状态 (diff)
+    added_diff = [{"full_name": d["full_name"], "node_id": d["node_id"]} for d in starred_details]
+    removed_diff = unstar_res.get("unstarred", [])
+    try:
+        apply_diff_to_stars_state(added=added_diff, removed=removed_diff)
+    except Exception as e:
+        logger.warning(f"更新本地 stars 状态失败: {e}")
+
+
     # 6. 删除标记的 List
     deleted_lists = []
     for list_id in plan.get("delete_list_ids", []):

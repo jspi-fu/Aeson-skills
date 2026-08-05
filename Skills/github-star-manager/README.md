@@ -25,34 +25,33 @@
 
 ## 🛠️ 快速开始
 
-### 1. 准备凭证
-需要一个 GitHub 账号的 **Classic** 个人访问令牌（PAT），需包含以下 scope 权限：
-- `public_repo` (读写公开仓库 star)
-- `read:user` (读取用户信息)
-- `user` (Lists 相关的创建、修改、删除与管理权限)
+### 1. 准备凭证（三选一，零配置优先）
 
-👉 [前往 GitHub 获取 Token (Classic)](https://github.com/settings/tokens) → 点击 `Generate new token (classic)`。
+本 Skill 灵活支持以下凭证获取方式（依优先级自动读取）：
 
-### 2. 配置环境变量与整理模式
-本 Skill 严格从本 Skill 目录下的 `.env` 文件独占加载配置（避免多重来源冲突与环境干扰）。
+1. **方式 1：GitHub CLI（免配置，最推荐）** 🌟
+   只要您本地安装并登录过 GitHub CLI（运行过 `gh auth login`），本 Skill 会自动通过 `gh auth token` 读取凭证，**无需手动生成 PAT**！
+2. **方式 2：Agent 宿主 / 环境变量注入**
+   在 Shell 或 Agent 环境（如 WorkBuddy 连接器）中配置 `GITHUB_TOKEN` 环境变量。
+3. **方式 3：手动配置 .env 配置文件**
+   创建 `~/.gh-star-manager/.env` 或 Skill 目录 `.env` 填入 Token（需包含 `public_repo` + `read:user` + `user` 权限）：
+   ```bash
+   GITHUB_TOKEN=ghp_xxxxxxxxxxxx
+   ```
 
-在 `.env` 中配置凭证与整理模式：
+👉 若需手动生成 PAT：[前往 GitHub 获取 Token (Classic)](https://github.com/settings/tokens) → 点击 `Generate new token (classic)`。
+
+### 2. 配置整理模式
+
+可在 `~/.gh-star-manager/.env` 或环境变量中选择整理模式：
 
 ```bash
-# GitHub 访问 Token
-GITHUB_TOKEN=ghp_xxxxxxxxxxxx
-
 # 整理模式选择: conservative (保守) | moderate (中等, 默认) | aggressive (激进)
 STARS_ORGANIZE_MODE=moderate
-
-# 可选精细控制参数（默认已注释，取消注释后可手动覆盖各模式的默认策略与阈值）:
-# STARS_STALE_YEARS=2
-# STARS_LOW_STARS_THRESHOLD=100
-# STARS_UNSTAR_LIMIT=50
-# STARS_UNSTAR_SAFE_THRESHOLD=5000
-# STARS_AI_SAMPLE_SIZE=60
-# STARS_AI_BATCH_SIZE=30
 ```
+
+> 💡 **关于 GitHub API 机制说明**：GitHub 官方目前仅通过 GraphQL API (`beholder-preview`) 暴露自定义 Star Lists 管理能力。若当前 Token 缺少 List 读写权限或 GraphQL 暂不可用，本 Skill 会**自动无缝降级**为生成精美分类的 `STARS_AWESOME_LIST.md` 结构化 Markdown 报告。
+
 
 #### ⚙️ 三种整理模式说明
 

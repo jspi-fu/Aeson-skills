@@ -7,14 +7,15 @@ description: 整理、分类、清理、备份与恢复 GitHub Stars，或批量
 
 ## 前置准备与配置
 
-- **凭证需求**: GitHub Classic PAT，需 `public_repo` + `read:user` + `user` scope。
+- **凭证需求**: GitHub Token（支持 GitHub CLI 本地自动获取，或 Classic PAT / Token 包含 `public_repo` + `read:user` + `user` scope）。
 - **环境要求**: Python >= 3.6，`pip install requests` (>= 2.28)。
 - **配置来源 (级联解析)**: 不再强制依赖 Skill 目录内的 `.env`，而是按以下优先级依次读取（每个 key 取最高优先级来源；**已存在的真实环境变量永不覆盖**）：
   1. 进程环境已有的变量（WorkBuddy/连接器注入的 `GITHUB_TOKEN`、shell 环境变量）；
   2. `GH_STAR_MANAGER_ENV` 指向的显式 `.env` 路径（可指向 WorkBuddy 托管的密钥文件）；
   3. 用户级 `~/.gh-star-manager/.env`（随用户在各工作区/项目间通用）；
-  4. Skill 根目录 `.env`（仅作向后兼容遗留）。
-- **凭证推荐**: `GITHUB_TOKEN` 优先放在 shell 环境变量或 `~/.gh-star-manager/.env`，避免在 Skill 目录内写 `.env`（防止被打包/更新覆盖或误提交泄露）。
+  4. Skill 根目录 `.env`（仅作向后兼容遗留）；
+  5. **GitHub CLI 本地凭证（自动获取）**: 若上述均未配置，自动执行 `gh auth token` 读取本地 CLI 登录状态，实现**零配置/免手动创建 Token**。
+- **凭证推荐**: 首选本地登录 GitHub CLI (`gh auth login`) 或由 WorkBuddy/shell 注入环境变量。
 - **工作目录隔离**: 所有会话中间产物（`stars.json`、`review_plan.json`、`review.html` 等）与状态文件统一落在专用工作目录 `~/.gh-star-manager/`（可用 `GH_STAR_MANAGER_WORKDIR` 覆盖为任意 WorkBuddy 托管路径），**绝不污染当前项目目录**。执行脚本时请把 `-o` 输出路径指向该目录。
 - **交互模式 (`GH_STAR_MANAGER_REVIEW_MODE`)**: 
   - `chat`（WorkBuddy 推荐）: 不启动浏览器，由 Agent 在对话中呈现方案摘要、征求明确授权后直接调用 CLI 写回，最贴合 Agent 循环；
@@ -28,7 +29,7 @@ description: 整理、分类、清理、备份与恢复 GitHub Stars，或批量
 ## 配置自愈 (Self-Healing)
 
 若脚本报 `Missing GITHUB_TOKEN` 或 `401 Unauthorized`:
-1. 输出 https://github.com/settings/tokens 向用户询问 Token；
+1. 优先提示用户运行 `gh auth login` 或输出 https://github.com/settings/tokens 向用户询问 Token；
 2. 写入用户级 `~/.gh-star-manager/.env`（`GITHUB_TOKEN=ghp_xxx`，目录不存在时自动创建）；
 3. 自动重跑先前失败的命令，无需用户重复指示。
 
@@ -36,11 +37,11 @@ description: 整理、分类、清理、备份与恢复 GitHub Stars，或批量
 
 该 Skill 已与 WorkBuddy 的运行环境解耦，无需把密钥写进 Skill 目录即可随处调用：
 
-- **方式零（最推荐，零配置）**: 在 WorkBuddy 连接器页连上 **GitHub** 连接器。连接后 `GITHUB_TOKEN` 由 WorkBuddy 托管并自动注入脚本环境，脚本因「真实环境变量优先」规则直接生效——这是最契合生态、密钥不落地的用法。
-- **方式一（零文件）**: 在 shell 启动脚本或 WorkBuddy 的环境变量配置里设置 `GITHUB_TOKEN`，脚本会优先读取真实环境变量，永不覆盖。
-- **方式二（随用户通用）**: 创建 `~/.gh-star-manager/.env`，所有工作区/项目共用同一份配置。
-- **方式三（指向托管密钥）**: 设置环境变量 `GH_STAR_MANAGER_ENV=/path/to/secret.env`，把配置指向 WorkBuddy 或密钥管理器生成的文件。
-- **遗留兼容**: 仍可在 Skill 根目录放置 `.env`，但仅作为最低优先级兜底，且易被打包/更新覆盖，不建议。
+- **方式零（零摩擦，最推荐）**: 本地登录过 GitHub CLI (`gh auth login`)，Skill 即可通过 `gh auth token` 静默获取凭证。
+- **方式一（零配置）**: 在 WorkBuddy 连接器页连上 **GitHub** 连接器。连接后 `GITHUB_TOKEN` 由 WorkBuddy 托管并自动注入脚本环境。
+- **方式二（零文件）**: 在 shell 启动脚本或 WorkBuddy 的环境变量配置里设置 `GITHUB_TOKEN`。
+- **方式三（随用户通用）**: 创建 `~/.gh-star-manager/.env`，所有工作区/项目共用同一份配置。
+- **方式四（指向托管密钥）**: 设置环境变量 `GH_STAR_MANAGER_ENV=/path/to/secret.env`。
 
 ## 操作流程 (Steps)
 

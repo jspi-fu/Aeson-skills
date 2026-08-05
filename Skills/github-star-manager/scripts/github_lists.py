@@ -305,5 +305,18 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        err_msg = str(e)
+        logger.error(f"GraphQL operation failed: {err_msg}")
+        res = {
+            "status": "error",
+            "message": err_msg,
+            "fallback_recommended": True,
+            "fallback_reason": "GitHub GraphQL API unavailable or lacks Star List permissions. Safe to fallback to generating Awesome-List Markdown/HTML report."
+        }
+        print(json.dumps(res, ensure_ascii=False, indent=2))
+        sys.exit(1)
+
 

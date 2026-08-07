@@ -1,16 +1,12 @@
-# gh-star-manager
+# github-star-manager
 
-> 你的 GitHub Stars 已经过千了，找东西像在垃圾堆里翻。这个 Skill 让你的 Agent 一句话整理完——写回前先备份，只清理垃圾不碰宝贝。
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Python Version](https://img.shields.io/badge/python-3.6%2B-blue.svg)](https://www.python.org/)
-[![Agent Skills](https://img.shields.io/badge/Agent-Skills-purple.svg)](https://agentskills.io/)
+> 你的 GitHub Stars 已经过百了，找东西像在垃圾堆里翻。这个 Skill 让你的 Agent 一句话整理完——写回前先备份，只清理垃圾不碰宝贝。
 
 ---
 
 ## 🆚 它和 npm 上的 github-star-manager 有什么不同？
 
-| 维度 | npm github-star-manager | **gh-star-manager（本 Skill）** |
+| 维度 | npm github-star-manager | **github-star-manager（本 Skill）** |
 |:---|:---|:---|
 | **安装** | 需装 Node/Bun + npx | **无需安装**，装进 Agent 即用 |
 | **LLM 配置** | 需配 OpenRouter/Gemini API Key | **无需配置**，复用宿主 Agent 智能 |
@@ -124,46 +120,3 @@ python scripts/star_ops.py check-scopes
 4. **大额 Unstar 限制与高星保护**：
    - 默认禁止单次处理超过 50 个 unstar 项目。
    - 对 Star 数量高于 5k 的项目进行黑名单过滤，避免误删高价值库。
-
----
-
-## 📂 目录结构
-
-```
-github-star-manager/
-├── SKILL.md                    # Agent 工作流编排指南
-├── README.md                   # 本文件
-├── LICENSE                     # MIT 许可证
-├── test-prompts.json           # 触发意图与边界条件测试集
-├── scripts/
-│   ├── utils.py                # Token 独占加载、模式解析、限流退避
-│   ├── fetch_stars.py          # 并发分页拉取 Stars(--sync 同步状态与画像)
-│   ├── star_ops.py             # star/unstar/备份恢复
-│   ├── github_lists.py         # Lists 管理(create/update/delete/batch-set-lists)
-│   ├── generate_review_plan.py # 根据三级整理模式生成 review_plan.json
-│   ├── repo_insight.py         # 导入前抓取 README 摘要与 issues
-│   ├── build_review.py         # 确认页静态模式
-│   ├── review_server.py        # 确认页服务模式(一键执行写回)
-│   └── state.py                # 用户画像与 stars 持续状态
-├── assets/
-│   └── review_template.html    # 确认页交互模板(占位符注入)
-├── references/
-│   └── analysis-guide.md       # AI 分类策略规范与 plan JSON 契约
-└── tests/
-    └── test_ratelimit.py       # 限流回归测试
-```
-
----
-
-## 🧪 运行回归测试
-
-回归测试已与真实的 GitHub API 隔离，基于 Mock 库直接运行，不耗费 Token：
-```bash
-python tests/test_ratelimit.py
-```
-
----
-
-## ⚖️ 许可证
-
-本项目基于 [MIT](LICENSE) 许可证开源。

@@ -7,7 +7,7 @@
 #### 烨笙开发的 Agent Skills 集合，解决定制化需求
 
 [![License](https://img.shields.io/badge/License-MIT-3B82F6?style=for-the-badge)](./LICENSE)
-[![Skills](https://img.shields.io/badge/Skills-7-10B981?style=for-the-badge)](#-skills)
+[![Skills](https://img.shields.io/badge/Skills-6-10B981?style=for-the-badge)](#-skills)
 [![AgentSkills](https://img.shields.io/badge/AgentSkills-Standard-8B5CF6?style=for-the-badge)](https://agentskills.io)
 
 </div>
@@ -20,7 +20,6 @@
 
 | 名字 | 一句话 | 链接 |
 |---|---|---|
-| 🚫 [**stop-chinese-slop（去 AI 腔）**](#-stop-chinese-slop去-ai-腔) | 去除中文文本中的 AI 腔、翻译腔、套话、黑话和公式化表达 | [SKILL.md](./Skills/stop-chinese-slop/SKILL.md) |
 | 🚀 [**dify-deploy（Dify 部署）**](#-dify-deploydify-部署) | 通过 ADMIN_API_KEY 自动化调用 Dify Console API，创建工作流应用、导入导出 DSL | [公众号文章](https://mp.weixin.qq.com/s/Fm1vmyrbKOjeCNQBDD24Bw) |
 | 🔧 [**dify-workflow（Dify 工作流）**](#-dify-workflowdify-工作流) | 根据需求设计并生成 Dify 工作流 DSL，与 dify-deploy 搭配使用 | [公众号文章](https://mp.weixin.qq.com/s/Fm1vmyrbKOjeCNQBDD24Bw) |
 | 📝 [**ideological-self-report（思想汇报）**](#-ideological-self-report思想汇报) | 帮助撰写符合规范的思想汇报文档，提供预置模板并支持沉淀个人文档库 | [SKILL.md](./Skills/ideological-self-report/SKILL.md) |

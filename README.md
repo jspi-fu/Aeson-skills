@@ -26,7 +26,7 @@
 | 📝 [**ideological-self-report（思想汇报）**](#-ideological-self-report思想汇报) | 帮助撰写符合规范的思想汇报文档，提供预置模板并支持沉淀个人文档库 | [SKILL.md](./Skills/ideological-self-report/SKILL.md) |
 | 📖 [**mkdocs-shadcn（文档排版）**](#-mkdocs-shadcn文档排版) | MkDocs Shadcn 主题 Markdown 排版与项目编排，含 YAML 配置、扩展语法等 | [排版示例](https://hello-vibe.netlify.app/) |
 | � [**image-upload（文档图床化）**](#-image-upload文档图床化) | 扫描文档中的本地/网络图片并批量上传至图床（ImgBB / Freeimage / UploadMe / ImgLink），自动替换为直链，支持全量转存与内容指纹去重 | [公众号文章](https://mp.weixin.qq.com/s/bWuH9pXnH3L2ablM_2GbuA) |
-| ⭐ [**github-star-manager（GitHub Stars 管理）**](#-github-star-managergithub-stars-管理) | 整理、分类、清理、备份与恢复 GitHub Stars，支持批量评估并导入新项目 | [SKILL.md](./Skills/github-star-manager/SKILL.md) |
+| ⭐ [**github-star-manager（GitHub Stars 管理）**](#-github-star-managergithub-stars-管理) | 整理、分类、清理、备份与恢复 GitHub Stars，支持批量评估并导入新项目 | [公众号文章](https://mp.weixin.qq.com/s/JE3k7qd9r2Ms6YSVb0ei7w) |
 
 ---
 
@@ -36,6 +36,12 @@
 
 ```bash
 npx skills add https://github.com/jspi-fu/Aeson-skills
+```
+
+或者指定某个 Skill 安装：
+
+```bash
+npx skills add https://github.com/jspi-fu/Aeson-skills --skill [Skill 名称]
 ```
 
 **方式二：对话式安装**
@@ -51,28 +57,6 @@ Agent 会自己 clone 到对应目录，不用你操心路径。
 ---
 
 ## ✨ Skills
-
-<table>
-<tr><td>
-
-### 🚫 stop-chinese-slop（去 AI 腔）
-
-> *"让文字重新说人话。"*
-
-中文互联网上的 AI 生成内容越来越多——「赋能」「抓手」「闭环」「在当今 XX 快速发展的时代」，一看就知道是机器写的。
-
-这个 Skill 专门干一件事：把你丢进来的中文文本，**去掉 AI 腔、翻译腔、套话、黑话和公式化表达**，让文字变得自然、直接、精炼、具体。
-
-**适合**
-
-- 改 AI 生成的营销文案、公众号文章、产品介绍
-- 清理翻译过来的技术文档里的翻译腔
-- 让正式文件去掉官话套话
-
-→ [SKILL.md](./Skills/stop-chinese-slop/SKILL.md)
-
-</td></tr>
-</table>
 
 <table>
 <tr><td>

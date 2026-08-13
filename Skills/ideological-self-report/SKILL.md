@@ -1,187 +1,81 @@
 ---
 name: ideological-self-report
-description: 为用户生成思想汇报文档。当用户要求写思想汇报、入党积极分子季度汇报、预备党员思想汇报或类似政治汇报材料时触发使用。用户提及"思想汇报"、"季度汇报"、"入党积极分子汇报"或类似场景时，必须调用此技能。
+description: 生成思想汇报（含入党积极分子、预备党员季度政治汇报）。在用户请求撰写或修改思想汇报、季度政治汇报材料时触发。
 ---
 
 # 思想汇报生成技能
 
-## 核心任务
-根据用户提供的信息和已配置的写作风格，生成符合规范的思想汇报文档。
+依据用户个性化风格配置与政治规范，生成标准化思想汇报文档。
 
-## 前置检查
+## 辅助文件
+- [requirements.md](file:///d:/源自C盘/桌面/Aeson-skills/Skills/ideological-self-report/references/requirements.md) — 格式、字数与政治规范（Single Source of Truth）
+- [config_manager.py](file:///d:/源自C盘/桌面/Aeson-skills/Skills/ideological-self-report/scripts/config_manager.py) — 配置状态与风格管理脚本
 
-每次调用本技能时，**必须先**执行以下检查：
+---
 
+## 执行步骤
+
+### 步骤 1：状态检查与风格初始化
+
+执行配置状态检查：
 ```bash
 python <skill-path>/scripts/config_manager.py status
 ```
 
-根据返回结果中的 `last_updated` 字段判断：
+根据返回结果中的 `last_updated` 字段判定分支：
 
-### 情况A：首次使用（last_updated 为空）
+- **分支 A：未初始化（`last_updated` 为空）**
+  1. 询问用户：`1. 提供历史思想汇报文件路径（分析风格）` 或 `2. 交互式填写基本信息`。
+  2. **选项 1 流程**：
+     - 获取用户提供的模板路径，执行扫描：`python <skill-path>/scripts/config_manager.py check`
+     - 读取路径下的历史文件，提取字数分配、历史缺点记录、开篇句式、用户基本信息（姓名、身份、职务及时间线）。
+     - 调用脚本保存分析结果：
+       ```bash
+       python <skill-path>/scripts/config_manager.py save-analysis --analysis-data '{"user_info":{...},"word_count":{...},"opening_patterns":[...],"historical_weaknesses":[...]}'
+       ```
+  3. **选项 2 流程**：
+     - 收集姓名、身份及职务时间线。
+     - 执行配置保存：`python <skill-path>/scripts/config_manager.py setup --name "姓名" --identity "身份" --positions "开始日期:职务名称"`
 
-询问用户：
-> 首次使用本技能。请选择：
-> 1. 提供历史思想汇报文件路径（我将分析您的写作风格）
-> 2. 之前没写过思想汇报（我将引导您填写基本信息）
+- **分支 B：已有配置（`last_updated` 非空）**
+  1. 显示上次更新时间，询问用户是否更换配置。
+  2. **选择更换**：执行重置 `python <skill-path>/scripts/config_manager.py reset`，随后进入分支 A。
+  3. **选择不更换（自动更新）**：执行 `python <skill-path>/scripts/config_manager.py check` 检查增量文件，如有新文件则自动解析并追加至 `config.json` 的 `writing_style`。
 
-**选项1处理流程（使用脚本保存分析结果）：**
+**完成标准**：`config.json` 状态确认完成（`last_updated` 有效且 `writing_style` 字段完整）。
 
-1. **获取用户提供的模板路径**
+### 步骤 2：素材收集（热点与实效）
 
-2. **执行扫描**：
-   ```bash
-   python <skill-path>/scripts/config_manager.py check
-   ```
+1. **时政热点 (步骤 2a)**
+   - 优先读取用户提供的学习资料（如 MD 格式原文）。
+   - 用户若请求推荐，则联网检索“2026年第一季度时政热点”，推荐至少 5 个选题供选择。
+   - 确认选题后，阅读材料并提炼 3 项核心政治理论学习要点。
+2. **个人事项 (步骤 2b)**
+   - 询问本季度学习、工作、生活具体事项（及最新职务变更）。
+   - 若用户选择跳过，则标记由 AI 结合身份配置合理推演生成。
 
-3. **读取路径下的所有文件**，由模型分析并提取：
-   - 各方面的字数要求
-   - 历史缺点记录（按时间线整理）
-   - 历史开篇句式
-   - 用户基本信息（姓名、身份、职务及任职时间线）
+**完成标准**：在完成步骤 2a（确定政治学习选题及核心要点）后，方可推进步骤 2b 及后续流程。
 
-4. **使用 save-analysis 命令保存分析结果**：
-   ```bash
-   python <skill-path>/scripts/config_manager.py save-analysis \
-     --analysis-data '{
-       "user_info": {
-         "name": "姓名",
-         "identity": "身份",
-         "positions": [
-           {"title": "职务名称", "start_date": "开始日期", "end_date": null}
-         ]
-       },
-       "word_count": {
-         "total": "1700-1900字",
-         "ideological": "600-700字",
-         "study": "250-350字",
-         "work": "250-350字",
-         "life": "100-150字",
-         "self_criticism": "150-200字"
-       },
-       "opening_patterns": ["开篇句式1", "开篇句式2"],
-       "historical_weaknesses": [
-         {"theme": "缺点主题", "description": "具体描述", "date": "2025-01"}
-       ]
-     }'
-   ```
+### 步骤 3：文本生成（政治对齐与差异去重）
 
-**选项2处理流程（使用脚本填充配置）：**
+读取 `config.json` 与 [requirements.md](file:///d:/源自C盘/桌面/Aeson-skills/Skills/ideological-self-report/references/requirements.md)，按照配置生成正文：
+- **开篇句式**：执行 [句式去重]，创作新句式，禁止使用 `opening_patterns` 中已有的历史表述。
+- **缺点与不足**：执行 [缺点去重]，从 `historical_weaknesses` 排除已用主题，选入全新缺点维度（150-200字，禁止模糊表述）。
+- **政治对齐**：党章引用须与 [cpc-constitution.md](file:///d:/源自C盘/桌面/Aeson-skills/Skills/ideological-self-report/references/cpc-constitution.md) 原文严格一致；提及理论指导时须完整包含“习近平新时代中国特色社会主义思想”且排序正确。
+- **严格限额**：各章节字数严格匹配 `word_count` 分配要求。
 
-1. **收集用户基本信息**：
-   - 姓名
-   - 身份（如：学生、护士、预备警官等）
-   - 职务及时间线（何时担任、何时卸任）
+**完成标准**：草稿结构完整，覆盖思想政治、学习、工作、生活、缺点不足各模块。
 
-2. **使用 setup 命令保存配置**：
-   ```bash
-   python <skill-path>/scripts/config_manager.py setup \
-     --name "用户姓名" \
-     --identity "用户身份" \
-     --positions "开始日期:职务名称,开始日期:职务名称"
-   ```
+### 步骤 4：质量检查（Quality Gate）
 
-### 情况B：已有配置（last_updated 不为空）
+对照 [requirements.md](file:///d:/源自C盘/桌面/Aeson-skills/Skills/ideological-self-report/references/requirements.md) 逐项审核生成的思想汇报：
+- 审查页面格式（标题居中、称谓顶格、落款居右等）。
+- 检查禁用词与表述规范（确保使用“自从被确定为…”，排除“党性修养”等禁用词汇）。
 
-询问用户：
-> 上次使用本技能：`[显示 last_updated 时间]`
-> 是否更换配置？（更换将清空现有配置并重新分析）
-> - 是：更换配置 → 执行**更换配置**流程
-> - 否：自动更新配置 → 执行**更新配置**流程
+**完成标准**：审查清单无未通过项，确认无事实编造或逻辑违规。
 
-**更换配置流程：**
-```bash
-python <skill-path>/scripts/config_manager.py reset
-```
-- 清空现有配置（包括 last_updated 置空）
-- 询问新的模板路径或基本信息
-- 重新执行首次使用的分析流程
+### 步骤 5：保存与交付
 
-**更新配置流程（自动执行）：**
-```bash
-python <skill-path>/scripts/config_manager.py check
-```
-- 检查同路径下是否有新增或变更的文件
-- 如果有新文件：
-  - 读取新文件内容
-  - 提取写作风格信息
-  - 追加到 config.json 的 writing_style 中
-  - 标记文件为已分析
-- 如果无新文件：直接使用现有配置
-
-## 生成思想汇报流程
-
-### 步骤1：读取硬性要求
-**必须**先读取以下文件：
-- `references/requirements.md` - 格式、结构和硬性规范要求
-- `config.json` - 用户写作风格和个性化信息
-
-### 步骤2a：收集时政热点和学习选题
-
-向用户询问本季度重大事件或时政热点关注点：
-> 请提供本季度您关注的时政热点或重大事件（可提供MD格式的学习强原文等资料），或选择由我搜索推荐选题。
-
-**用户选择：**
-
-**A. 用户直接提供资料**
-- 用户可提供MD格式的学习强原文等资料
-- 仔细阅读用户提供的资料，提取关键内容和学习要点
-- 进入步骤2b
-
-**B. 用户选择搜索推荐**
-- 调用联网搜索，搜索"2026年第一季度时政热点"或类似主题
-- 为用户提供至少5个本季度学习选题供选择
-- 用户选择后，仔细阅读相关内容，提取关键学习要点
-- 进入步骤2b
-
-**重要：步骤2a未完成不得进入步骤2b**
-
-### 步骤2b：收集具体事项
-
-向用户询问（用户可选择跳过）：
-> 请提供本季度学习/工作/生活方面的具体事项（可简略描述或跳过我自行生成）。
-
-**用户选择：**
-
-**A. 用户提供具体事项**
-- 收集用户提供的学习、工作、生活方面的具体事项
-- 收集当前职位（如果与配置中不同需要更新）
-
-**B. 用户跳过**
-- 记录用户跳过，此时AI将自行生成完整思想汇报
-- 用户可在初稿生成后进行调整
-
-### 步骤3：生成内容
-
-根据 `config.json` 中的 `writing_style` 配置：
-
-1. **用户基本信息**：使用配置的姓名、身份、职务
-2. **开篇句式**：必须避免与`opening_patterns` 中已使用的句式重复，创作新的开篇句式
-3. **各方面的字数**：严格遵循 `word_count` 配置
-4. **缺点部分**：从 `historical_weaknesses` 中排除已使用过的，选择新的缺点主题；**必须避免与历史缺点重复**
-
-### 步骤4：质量检查
-
-严格遵循 `references/requirements.md` 中的各项要求，逐条审查生成的思想汇报是否符合要求。
-
-### 步骤5：保存文件
-
-将生成的思想汇报保存为MD文件：
-- **文件命名格式**：`[用户姓名]思想汇报[撰写日期].md`
-- **示例**：`张三思想汇报2026-03-20.md`
-- **文件保存位置**：用户当前工作目录或用户指定目录
-- 落款日期即为撰写日期，应与文件名中的日期一致
-
-## 重要规则
-
-1. **缺点不重复**：每次生成前检查 `historical_weaknesses` 中已使用的缺点，确保本季度缺点不重复
-2. **开篇句式不重复**：每次生成前检查 `opening_patterns` 中已使用的句式，确保本季度开篇句式不重复
-3. **字数控制**：严格遵循配置的各章节字数要求
-4. **时间线记录**：用户职务需记录何时担任、何时卸任
-5. **不擅自添加风格**：只使用 config.json 中记录的四个方面，不自行分析添加其他风格特征
-
-## 辅助文件
-
-- `references/requirements.md` - 硬性格式和结构要求
-- `config.json` - 用户写作风格配置（自动生成和维护）
-- `scripts/config_manager.py` - 配置管理脚本
+将思想汇报保存为 Markdown 文件：
+- **命名规范**：`[用户姓名]思想汇报[YYYY-MM-DD].md`（例：`张三思想汇报2026-03-20.md`）。
+- **落款一致性**：正文结尾落款日期须与文件名中的日期完全一致。

@@ -1,223 +1,191 @@
 ---
 name: dify-deploy
-description: 通过 ADMIN_API_KEY 自动化调用 Dify Console API，创建工作流应用、导出 DSL、导入 DSL。适用于不想走浏览器登录 cookie、需要脚本化测试或自动化工作流导入导出的场景。
+description: 通过 ADMIN_API_KEY 自动化调用 Dify Console API（Node.js 驱动模式）。用于脚本化创建应用、导出 DSL 到文件、从大文件 YAML 导入或覆盖 DSL。
 disable-model-invocation: true
 ---
 
-# Dify Console Admin API
+# Dify Console Admin API (Node.js 驱动模式)
+
+通过 `ADMIN_API_KEY` 自动化调用 Dify Console API。全流程采用 **Node.js 模版** 执行，避免大文件 DSL YAML 在命令行传输时出现命令行超长溢出或双引号转义失败。
 
 ## 适用场景
 
-当用户想通过 `ADMIN_API_KEY` 自动化调用 Dify Console API 时使用，包括：
+- 自动化创建工作流或高级编排应用。
+- 将应用或工作流 DSL 导出并保存为本地 `.yml` 文件。
+- 从本地 YAML 文件或远程 URL 导入 DSL 到 Dify（支持超大文件）。
+- 覆盖导入现有工作流应用并进行异步状态确认。
 
-- 创建工作流应用。
-- 导出应用或工作流 DSL。
-- 从 YAML 内容或 URL 导入 DSL。
-- 验证 admin key 鉴权是否生效。
+---
 
-## 参数管理
+## Phase 1: 配置加载与准备
 
-### 配置文件位置
-
-配置保存在项目根目录下：`.dify_key/config.json`
-
-### 首次使用：运行一键获取脚本
-
-如果配置文件不存在，直接运行脚本自动获取三个 key：
-
-```bash
-node .claude/skills/dify-deploy/scripts/fetch_keys.js
-```
-
-- 脚本会自动通过正在运行的 Docker 容器定位 Dify 部署目录，无需手动输入路径
-- 脚本会自动创建 `.dify_key/config.json` 并写入初始值，同时将 `.dify_key/` 加入 `.gitignore`
-- 如果部分 key 获取失败，脚本会提示具体原因并引导阅读 `README.md` 进行手动配置
-
-### 后续使用：加载已保存参数
-
-每次执行前先检查并加载配置：
-
-```javascript
-const fs = require('fs');
-const path = require('path');
-
-const configPath = path.join('.dify_key', 'config.json');
-if (fs.existsSync(configPath)) {
-  const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-  process.env.DIFY_BASE_URL = config.DIFY_BASE_URL;
-  process.env.ADMIN_API_KEY = config.ADMIN_API_KEY;
-  process.env.WORKSPACE_ID = config.WORKSPACE_ID;
-  console.log(`已加载配置：DIFY_BASE_URL=${config.DIFY_BASE_URL}`);
-} else {
-  console.log('配置文件不存在，请先运行 fetch_keys.js');
-}
-```
-
-### 更新配置
-
-用户要求更新参数时，读取现有配置、合并更新、重新保存：
-
-```javascript
-const fs = require('fs');
-const path = require('path');
-
-const configPath = path.join('.dify_key', 'config.json');
-const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-config.WORKSPACE_ID = '新的-workspace-id';  // 按需修改对应字段
-fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf-8');
-```
-
-### 安全要求
-
-- 不要把 `ADMIN_API_KEY` 写入仓库文件、PR 描述、日志或长期保存的脚本
-- 展示命令时，优先使用变量而非明文值
-- 创建配置文件时脚本会自动将 `.dify_key/` 加入 `.gitignore`
-
-### 操作类型
-
-加载配置后，确认操作类型和附加参数：
-
-- 创建应用：`APP_NAME`，可选 `APP_DESCRIPTION`
-- 导出 DSL：`APP_ID`，可选 `INCLUDE_SECRET`、`WORKFLOW_ID`
-- 导入 DSL：`YAML_CONTENT` 或 `YAML_URL`
-- 覆盖导入：额外需要 `APP_ID`，且只能覆盖 workflow 或 advanced-chat 应用
-- 确认导入：`IMPORT_ID`
-
-## 前置条件
-
-运行中的 API 进程必须启用：
-
-```env
-ADMIN_API_KEY_ENABLE=true
-ADMIN_API_KEY=<admin-key>
-```
-
-修改后必须重启 API 进程。如果请求返回 `401 Invalid token`，通常表示运行中的进程没有加载 admin key，或者 key 不正确。
-
-## 推荐变量模板
-
-让用户先设置环境变量，再执行后续命令：
-
-```javascript
-process.env.DIFY_BASE_URL = 'https://dify.example.com';
-process.env.ADMIN_API_KEY = 'your-admin-key';
-process.env.WORKSPACE_ID = 'your-workspace-id';
-```
-
-如果用户明确是在本地开发环境测试，`DIFY_BASE_URL` 常见值是：
-
-```javascript
-process.env.DIFY_BASE_URL = 'http://127.0.0.1:5001';
-```
-
-## 请求头规则
-
-所有通过 admin key 鉴权的 Console API 请求都要带：
-
-```text
-Authorization: Bearer ${ADMIN_API_KEY}
-X-WORKSPACE-ID: ${WORKSPACE_ID}
-```
-
-admin key 生效时不需要 `X-CSRF-Token`，也不需要登录 cookie。API 会在指定 workspace 中找到一个 owner 账号，并以该账号身份执行。
-
-## 可选：查询 workspace id
-
-如果用户不知道 `WORKSPACE_ID`，最简单的方式是在 Dify 网页上按 F12 打开开发者工具，找到 `/console/api/workspaces` 接口的响应，其中 `id` 字段即为 `WORKSPACE_ID`：
+参数保存在 `.dify_key/config.json`：
 
 ```json
 {
-  "workspaces": [
-    {
-      "id": "d4e26a01-162f-4366-9a25-1c2c1bdd15dz",
-      "name": "admin's Workspace",
-      "current": true
+  "DIFY_BASE_URL": "http://127.0.0.1:5001",
+  "ADMIN_API_KEY": "sk-admin-xxx",
+  "WORKSPACE_ID": "d4e26a01-162f-4366-9a25-1c2c1bdd15dz"
+}
+```
+
+### 加载或自动获取配置
+
+在当前工作区检查配置：
+- 若 `.dify_key/config.json` 存在：直接读取配置。
+- 若配置文件不存在：运行一键获取脚本：
+  ```bash
+  node ./scripts/fetch_keys.js
+  ```
+  *(注：请指向实际 Skill 部署路径下的 `scripts/fetch_keys.js`)*
+
+---
+
+## Phase 2: Node.js 操作引擎
+
+所有 HTTP 请求均需包含标准鉴权头：
+- `Authorization: Bearer ${ADMIN_API_KEY}`
+- `X-WORKSPACE-ID: ${WORKSPACE_ID}`
+
+---
+
+### 分支 A：创建应用 (Create App)
+
+使用 Node.js 发送创建请求：
+
+```javascript
+const fs = require('fs');
+const config = JSON.parse(fs.readFileSync('.dify_key/config.json', 'utf-8'));
+
+async function createApp(appName, description = '') {
+  const res = await fetch(`${config.DIFY_BASE_URL}/console/api/apps`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${config.ADMIN_API_KEY}`,
+      'X-WORKSPACE-ID': config.WORKSPACE_ID,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ name: appName, mode: 'workflow', description })
+  });
+  const data = await res.json();
+  if (res.status === 201) {
+    console.log(`应用创建成功! App ID: ${data.id}`);
+    return data;
+  } else {
+    throw new Error(`创建失败 [${res.status}]: ${JSON.stringify(data)}`);
+  }
+}
+```
+
+**Completion Criterion**: 收到 HTTP Status `201 CREATED`，返回包含新创建应用的 `id`。
+
+---
+
+### 分支 B：导出 DSL 到本地文件 (Export DSL)
+
+安全将云端 DSL 导出为本地 `.yml` 文件：
+
+```javascript
+const fs = require('fs');
+const config = JSON.parse(fs.readFileSync('.dify_key/config.json', 'utf-8'));
+
+async function exportDSL(appId, outputPath, includeSecret = false) {
+  const url = `${config.DIFY_BASE_URL}/console/api/apps/${appId}/export?include_secret=${includeSecret}`;
+  const res = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${config.ADMIN_API_KEY}`,
+      'X-WORKSPACE-ID': config.WORKSPACE_ID
     }
-  ]
+  });
+  const json = await res.json();
+  if (res.ok && json.data) {
+    fs.writeFileSync(outputPath, json.data, 'utf-8');
+    console.log(`DSL 成功导出至: ${outputPath}`);
+  } else {
+    throw new Error(`导出失败 [${res.status}]: ${JSON.stringify(json)}`);
+  }
 }
 ```
 
-## 创建工作流应用
+**Completion Criterion**: 收到 HTTP `200 OK`，本地 `outputPath` 成功写入非空 YAML 内容。
 
-先确认：
+---
 
-```javascript
-process.env.APP_NAME = 'admin-key-test-workflow';
-process.env.APP_DESCRIPTION = 'created by admin api key test';
-```
+### 分支 C：从本地文件导入 DSL (Import DSL from Local YAML)
 
-```bash
-curl -i -X POST "${DIFY_BASE_URL}/console/api/apps" -H "Authorization: Bearer ${ADMIN_API_KEY}" -H "X-WORKSPACE-ID: ${WORKSPACE_ID}" -H "Content-Type: application/json" -d "{\"name\": \"${APP_NAME}\", \"mode\": \"workflow\", \"description\": \"${APP_DESCRIPTION}\"}"
-```
-
-成功时应返回：
-
-```text
-HTTP/1.1 201 CREATED
-```
-
-## 导出应用或工作流 DSL
-
-先确认：
+通过 Node.js 文件流直接读取大文件 YAML，解决 CLI 命令超长问题：
 
 ```javascript
-process.env.APP_ID = 'your-app-id';
-process.env.INCLUDE_SECRET = 'false';
-```
+const fs = require('fs');
+const config = JSON.parse(fs.readFileSync('.dify_key/config.json', 'utf-8'));
 
-```bash
-curl -sS -X GET "${DIFY_BASE_URL}/console/api/apps/${APP_ID}/export?include_secret=${INCLUDE_SECRET}" -H "Authorization: Bearer ${ADMIN_API_KEY}" -H "X-WORKSPACE-ID: ${WORKSPACE_ID}"
-```
+async function importDSL(yamlFilePath, targetAppId = null) {
+  const yamlContent = fs.readFileSync(yamlFilePath, 'utf-8');
+  const payload = {
+    mode: 'yaml-content',
+    yaml_content: yamlContent
+  };
+  if (targetAppId) payload.app_id = targetAppId; // 覆盖导入模式
 
-如果要导出指定草稿 workflow，追加 `workflow_id`：
+  const res = await fetch(`${config.DIFY_BASE_URL}/console/api/apps/imports`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${config.ADMIN_API_KEY}`,
+      'X-WORKSPACE-ID': config.WORKSPACE_ID,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
 
-```javascript
-process.env.WORKFLOW_ID = 'your-workflow-id';
-```
-
-```bash
-curl -sS -X GET "${DIFY_BASE_URL}/console/api/apps/${APP_ID}/export?include_secret=${INCLUDE_SECRET}&workflow_id=${WORKFLOW_ID}" -H "Authorization: Bearer ${ADMIN_API_KEY}" -H "X-WORKSPACE-ID: ${WORKSPACE_ID}"
-```
-
-响应结构：
-
-```json
-{
-  "data": "version: 0.6.0\nkind: app\n..."
+  const result = await res.json();
+  return handleImportResponse(res.status, result, config);
 }
 ```
 
-## 导入 DSL
+---
 
-从 YAML 内容导入：
+## Phase 3: 异步状态确认与终态收敛 (Status Convergence)
 
-```bash
-curl -i -X POST "${DIFY_BASE_URL}/console/api/apps/imports" -H "Authorization: Bearer ${ADMIN_API_KEY}" -H "X-WORKSPACE-ID: ${WORKSPACE_ID}" -H "Content-Type: application/json" -d "{\"mode\": \"yaml-content\", \"yaml_content\": \"<YAML 内容>\"}"
+当导入的大文件 DSL 处理较慢时，Dify 会返回 HTTP `202 ACCEPTED` 且状态为 `pending`。**必须自动进行 Confirm 确认直至收敛**。
+
+```javascript
+async function handleImportResponse(statusCode, responseJson, config) {
+  if (statusCode === 200 || statusCode === 201) {
+    console.log(`DSL 导入完成! App ID: ${responseJson.app_id || responseJson.id}`);
+    return responseJson;
+  }
+
+  if (statusCode === 202 && responseJson.status === 'pending') {
+    const importId = responseJson.id || responseJson.import_id;
+    console.log(`导入任务排队中 (Import ID: ${importId})，开始自动 Confirm 确认...`);
+
+    const confirmRes = await fetch(`${config.DIFY_BASE_URL}/console/api/apps/imports/${importId}/confirm`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${config.ADMIN_API_KEY}`,
+        'X-WORKSPACE-ID': config.WORKSPACE_ID,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({})
+    });
+    const confirmData = await confirmRes.json();
+    console.log(`Confirm 状态结果:`, confirmData);
+    return confirmData;
+  }
+
+  throw new Error(`导入异常 [${statusCode}]: ${JSON.stringify(responseJson)}`);
+}
 ```
 
-从 URL 导入：
+**Completion Criterion**: 响应状态最终收敛为 `200/201`，且返回导入后的 `app_id`。
 
-```bash
-curl -i -X POST "${DIFY_BASE_URL}/console/api/apps/imports" -H "Authorization: Bearer ${ADMIN_API_KEY}" -H "X-WORKSPACE-ID: ${WORKSPACE_ID}" -H "Content-Type: application/json" -d "{\"mode\": \"yaml-url\", \"yaml_url\": \"https://example.com/workflow.yml\"}"
-```
+---
 
-如果要覆盖已有 workflow 或 advanced-chat 应用，传入 `app_id`：
+## 异常排查 (Troubleshooting)
 
-```bash
-curl -i -X POST "${DIFY_BASE_URL}/console/api/apps/imports" -H "Authorization: Bearer ${ADMIN_API_KEY}" -H "X-WORKSPACE-ID: ${WORKSPACE_ID}" -H "Content-Type: application/json" -d "{\"mode\": \"yaml-content\", \"yaml_content\": \"<YAML 内容>\", \"app_id\": \"${APP_ID}\"}"
-```
-
-如果导入返回 `202` 且 `status: pending`，需要确认导入：
-
-```bash
-curl -i -X POST "${DIFY_BASE_URL}/console/api/apps/imports/${IMPORT_ID}/confirm" -H "Authorization: Bearer ${ADMIN_API_KEY}" -H "X-WORKSPACE-ID: ${WORKSPACE_ID}" -H "Content-Type: application/json" -d "{}"
-```
-
-## 排查
-
-- `201 CREATED`：创建应用成功。
-- `200 OK`：导出或导入完成，或已返回数据。
-- `202 ACCEPTED`：导入进入 pending，需要调用 confirm 接口。
-- `401 Invalid token`：admin key 缺失、未启用、值不正确，或配置变更后 API 进程未重启。
-- Connection refused：`DIFY_BASE_URL` 不可达，或 API 服务未运行。
-- `ModuleNotFoundError: werkzeug.utils`：`.venv` 里的 Werkzeug 安装损坏；重装 `Werkzeug==3.1.6` 或重建 `api/.venv`。
+- `401 Invalid token`:
+  1. 检查 `.dify_key/config.json` 中的 `ADMIN_API_KEY` 是否正确。
+  2. 确认服务端 `.env` 中已配置 `ADMIN_API_KEY_ENABLE=true`。
+  3. 服务端修改 `.env` 后**必须重新启动 API 容器**（如 `docker compose up -d --force-recreate api`）。
+- `Connection refused`:
+  - 检查 `DIFY_BASE_URL` 地址是否连通，本地 Docker 部署通常为 `http://127.0.0.1:5001` 或 `http://localhost`。

@@ -1,0 +1,5 @@
+interface:
+  display_name: "文档图片转存图床"
+  short_description: "扫描文档本地图片并批量上传至图床、原地替换链接"
+policy:
+  allow_implicit_invocation: true

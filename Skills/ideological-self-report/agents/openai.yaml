@@ -1,0 +1,5 @@
+interface:
+  display_name: "思想汇报生成器"
+  short_description: "按政治规范与个人风格生成标准化季度思想汇报文档"
+policy:
+  allow_implicit_invocation: true

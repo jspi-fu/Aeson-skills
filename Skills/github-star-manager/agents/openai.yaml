@@ -1,0 +1,5 @@
+interface:
+  display_name: "GitHub Stars 管理器"
+  short_description: "整理、分类、清理与备份 GitHub Stars 收藏及项目列表"
+policy:
+  allow_implicit_invocation: true

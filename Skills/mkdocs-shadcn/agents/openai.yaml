@@ -1,0 +1,5 @@
+interface:
+  display_name: "MkDocs Shadcn 文档排版"
+  short_description: "基于 shadcn 主题进行 Markdown 规范排版与项目配置管理"
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Dify API 自动化部署"
+  short_description: "通过 Admin API 自动化创建应用、导出与导入 Dify DSL 工作流"
+policy:
+  allow_implicit_invocation: true

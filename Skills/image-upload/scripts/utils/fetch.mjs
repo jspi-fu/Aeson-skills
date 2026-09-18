@@ -47,7 +47,10 @@ export async function fetchWithRetry(url, options = {}, retries = 2, timeout = 3
       await new Promise((resolve) => setTimeout(resolve, 1000));
       return fetchWithRetry(url, options, retries - 1, timeout);
     }
-    throw error;
+    // 把底层网络错误（如 ECONNRESET、TLS 握手失败）带进 message，
+    // 避免用户只看到笼统的 "fetch failed" 而无法判断是代码问题还是网络/防火墙问题
+    const cause = error.cause ? (error.cause.code || error.cause.message) : '';
+    throw cause ? new Error(`${error.message} (${cause})`) : error;
   }
 }
 

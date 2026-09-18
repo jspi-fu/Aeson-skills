@@ -16,6 +16,12 @@ export function detectMimeType(buffer, filePath) {
   if (buffer[0] === 0x42 && buffer[1] === 0x4d) return 'image/bmp';
   if (buffer[0] === 0x00 && buffer[1] === 0x00 && buffer[2] === 0x01 && buffer[3] === 0x00) return 'image/x-icon';
 
+  // AVIF/HEIF 属 ISO-BMFF 容器：偏移 4 处为 'ftyp'，紧随其后的 brand 标识具体格式
+  if (buffer.length >= 12 && buffer.slice(4, 8).toString('ascii') === 'ftyp') {
+    const brand = buffer.slice(8, 12).toString('ascii');
+    if (brand === 'avif' || brand === 'avis') return 'image/avif';
+  }
+
   // SVG 是文本型 XML，无固定二进制头，从首部内容中嗅探 <svg 标签
   if (buffer.slice(0, 1024).toString('utf8').includes('<svg')) return 'image/svg+xml';
 
@@ -29,7 +35,8 @@ export function detectMimeType(buffer, filePath) {
     '.webp': 'image/webp',
     '.bmp': 'image/bmp',
     '.ico': 'image/x-icon',
-    '.svg': 'image/svg+xml'
+    '.svg': 'image/svg+xml',
+    '.avif': 'image/avif'
   };
   return extToMime[ext] || '';
 }
@@ -48,7 +55,8 @@ export function getExtensionForMime(mimeType) {
     'image/webp': '.webp',
     'image/bmp': '.bmp',
     'image/x-icon': '.ico',
-    'image/svg+xml': '.svg'
+    'image/svg+xml': '.svg',
+    'image/avif': '.avif'
   };
   return mimeToExt[mimeType] || '';
 }

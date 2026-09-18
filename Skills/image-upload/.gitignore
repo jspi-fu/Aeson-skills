@@ -1,5 +1,7 @@
-# 本地 API 密钥配置，含各图床私钥（模版见 .env.example）
+# 本地 API 密钥配置，含各图床私钥（所有 .env 变体一律忽略，模版见 .env.example）
 .env
+.env.*
+!.env.example
 
 # 上传去重缓存（内容指纹 → 直链），运行时自动生成
 .image-upload-cache.json

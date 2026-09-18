@@ -46,9 +46,10 @@ package-lock.json
 yarn.lock
 
 # 其他
+# 环境变量与密钥文件一律忽略（含所有 .env 变体），仅保留 .env.example 模板
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 skills-lock.json
-test/
+selfuse/
 *.zip

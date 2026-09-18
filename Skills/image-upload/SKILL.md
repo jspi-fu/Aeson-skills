@@ -50,7 +50,7 @@ node scripts/upload.mjs /path/to/document.md --mirror --replace
 node scripts/upload.mjs /path/to/image.png
 ```
 
-**SVG / 大文件**：若图片为 SVG 或超过当前 provider 单文件上限，自动切换到支持的 provider（详见 [`references/providers.md`](references/providers.md)）。不支持时跳过该图并保留原链接。
+**SVG / AVIF / 大文件**：SVG、ICO 仅 ImgLink 支持，AVIF 仅 ImgLink 与 UploadMe 支持；超过当前 provider 单文件上限（ImgLink 50MB / ImgBB 32MB / Freeimage 64MB / UploadMe 64MB）时切换到支持的 provider（详见 [`references/providers.md`](references/providers.md)）。四家都不支持时跳过该图并保留原链接。
 
 **mirror 幂等**：若远程图片的 host 已是目标图床域名，跳过再次转存。
 

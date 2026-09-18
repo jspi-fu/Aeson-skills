@@ -1,14 +1,18 @@
 import { fetchWithRetry } from '../utils/fetch.mjs';
 import { getExtensionForMime } from '../utils/mime.mjs';
 
-// ImgLink 自有 REST API：X-API-Key 请求头鉴权，原始文件走 multipart 字段 file
+// ImgLink 自有 REST API（权威参考：https://imglink.cc/tools/sharex 的 "API reference" 一节）：
+// POST /api/v1/upload，X-API-Key 请求头鉴权，原始文件走 multipart 字段 file
+// 响应 { success, id, url, viewer, thumbnail, delete, ... }；单文件上限 50MB（已验证邮箱账号）。
+// 注意：站内 /wiki 与 /blog 页面里的 /api/upload + Authorization: Bearer 写法是通用示意，与真实 API 不一致，勿参照。
 export const imglink = {
   name: 'imglink',
   displayName: 'ImgLink',
   requiresConfig: true,
   maxFileSize: 50 * 1024 * 1024, // 50MB
-  supportedTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp', 'image/svg+xml', 'image/x-icon'],
-  directHosts: ['imglink.cc'], // mirror 幂等：远程 URL 已是该 host 则视为已托管，跳过再转存
+  supportedTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp', 'image/avif', 'image/svg+xml', 'image/x-icon'],
+  // mirror 幂等：直链现由 i.imglink.cc 提供，viewer/管理页仍在 imglink.cc
+  directHosts: ['imglink.cc', 'i.imglink.cc'],
 
   upload: async (buffer, filename, mimeType) => {
     const apiKey = process.env.IMGLINK_API_KEY;

@@ -7,7 +7,7 @@
 #### 烨笙开发的 Agent Skills 集合，解决定制化需求
 
 [![License](https://img.shields.io/badge/License-MIT-3B82F6?style=for-the-badge)](./LICENSE)
-[![Skills](https://img.shields.io/badge/Skills-6-10B981?style=for-the-badge)](#-skills)
+[![Skills](https://img.shields.io/badge/Skills-7-10B981?style=for-the-badge)](#-skills)
 [![AgentSkills](https://img.shields.io/badge/AgentSkills-Standard-8B5CF6?style=for-the-badge)](https://agentskills.io)
 
 </div>
@@ -26,6 +26,7 @@
 | 📖 [**mkdocs-shadcn（文档排版）**](#-mkdocs-shadcn文档排版) | MkDocs Shadcn 主题 Markdown 排版与项目编排，含 YAML 配置、扩展语法等 | [排版示例](https://hello-vibe.netlify.app/) |
 | � [**image-upload（文档图床化）**](#-image-upload文档图床化) | 扫描文档中的本地/网络图片并批量上传至图床（ImgBB / Freeimage / UploadMe / ImgLink），自动替换为直链，支持全量转存与内容指纹去重 | [公众号文章](https://mp.weixin.qq.com/s/bWuH9pXnH3L2ablM_2GbuA) |
 | ⭐ [**github-star-manager（GitHub Stars 管理）**](#-github-star-managergithub-stars-管理) | 整理、分类、清理、备份与恢复 GitHub Stars，支持批量评估并导入新项目 | [公众号文章](https://mp.weixin.qq.com/s/JE3k7qd9r2Ms6YSVb0ei7w) |
+| 🔍 [**frontend-review（前端审查助手）**](#-frontend-review前端审查助手) | 逐页逐组件审查 AI 生成的前端，输出有证据的问题清单、修复方案与验收条件 | [SKILL.md](./Skills/frontend-review/SKILL.md) |
 
 ---
 
@@ -155,7 +156,7 @@ Agent 会自己 clone 到对应目录，不用你操心路径。
 - 内容指纹去重：SHA-256 缓存 + HEAD 存活校验，相同图片跨次运行不重复上传
 - 四家图床任选，仅 ImgLink 支持 SVG；缺 API Key 时引导填写 `.env` 并自动重试
 
-→ [SKILL.md](./Skills/image-upload-skill/SKILL.md)
+→ [SKILL.md](./Skills/image-upload/SKILL.md)
 
 </td></tr>
 </table>
@@ -177,6 +178,27 @@ Agent 会自己 clone 到对应目录，不用你操心路径。
 - 高星保护：star ≥ 5000 的 repo 默认不被 unstar
 
 → [SKILL.md](./Skills/github-star-manager/SKILL.md)
+
+</td></tr>
+</table>
+
+<table>
+<tr><td>
+
+### 🔍 frontend-review（前端审查助手）
+
+> *"AI 写的前端，交付前先体检一遍。"*
+
+给源代码、网址或截图，它逐页逐组件定位问题，每条结论都带证据、影响、优先级与复验方法；未验证的部分明确标注，只有你要求时才动代码。截图只支持图中可见的状态，浏览器实测与脚本执行取决于宿主能力。
+
+**它能做什么**
+
+- 快速体检：按选定旅程优先找核心流程问题，产出一份简短报告
+- 完整审查：逐页逐组件建立证据台账、覆盖索引与未查清单
+- 修复方案：每个组件实例给处置、任务拆分、依赖顺序与验收条件
+- 授权才动代码：小批实施并复验，仍受后端 / 凭据 / 真实设备阻塞的项单独列出
+
+→ [SKILL.md](./Skills/frontend-review/SKILL.md)
 
 </td></tr>
 </table>
